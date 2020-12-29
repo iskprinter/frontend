@@ -1,3 +1,6 @@
+.dockerignore
+.git/
+coverage/
 dist/
 Dockerfile
 jenkins-agent.yaml
