@@ -1,0 +1,41 @@
+button {
+    width: 50%;
+    margin: 8px;
+}
+
+table {
+    width: 100%;
+}
+
+.mat-header-cell {
+    padding: 8px;
+}
+
+.mat-cell {
+    font-size: 12px;
+    padding: 8px;
+}
+
+.example-form {
+    min-width: 150px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.example-full-width {
+    width: 100%;
+}
+
+.align-content-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mat-column-volume,
+.mat-column-buyPrice,
+.mat-column-sellPrice,
+.mat-column-fees,
+.mat-column-profit {
+    text-align: right;
+}

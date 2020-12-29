@@ -1,0 +1,270 @@
+[
+  {
+    "regionName": "A821-A",
+    "regionId": 10000019
+  },
+  {
+    "regionName": "Aridia",
+    "regionId": 10000054
+  },
+  {
+    "regionName": "Black Rise",
+    "regionId": 10000069
+  },
+  {
+    "regionName": "Branch",
+    "regionId": 10000055
+  },
+  {
+    "regionName": "Cache",
+    "regionId": 10000007
+  },
+  {
+    "regionName": "Catch",
+    "regionId": 10000014
+  },
+  {
+    "regionName": "Cloud Ring",
+    "regionId": 10000051
+  },
+  {
+    "regionName": "Cobalt Edge",
+    "regionId": 10000053
+  },
+  {
+    "regionName": "Curse",
+    "regionId": 10000012
+  },
+  {
+    "regionName": "Deklein",
+    "regionId": 10000035
+  },
+  {
+    "regionName": "Delve",
+    "regionId": 10000060
+  },
+  {
+    "regionName": "Derelik",
+    "regionId": 10000001
+  },
+  {
+    "regionName": "Detorid",
+    "regionId": 10000005
+  },
+  {
+    "regionName": "Devoid",
+    "regionId": 10000036
+  },
+  {
+    "regionName": "Domain",
+    "regionId": 10000043
+  },
+  {
+    "regionName": "Esoteria",
+    "regionId": 10000039
+  },
+  {
+    "regionName": "Essence",
+    "regionId": 10000064
+  },
+  {
+    "regionName": "Etherium Reach",
+    "regionId": 10000027
+  },
+  {
+    "regionName": "Everyshore",
+    "regionId": 10000037
+  },
+  {
+    "regionName": "Fade",
+    "regionId": 10000046
+  },
+  {
+    "regionName": "Feythabolis",
+    "regionId": 10000056
+  },
+  {
+    "regionName": "Fountain",
+    "regionId": 10000058
+  },
+  {
+    "regionName": "Geminate",
+    "regionId": 10000029
+  },
+  {
+    "regionName": "Genesis",
+    "regionId": 10000067
+  },
+  {
+    "regionName": "Great Wildlands",
+    "regionId": 10000011
+  },
+  {
+    "regionName": "Heimatar",
+    "regionId": 10000030
+  },
+  {
+    "regionName": "Immensea",
+    "regionId": 10000025
+  },
+  {
+    "regionName": "Impass",
+    "regionId": 10000031
+  },
+  {
+    "regionName": "Insmother",
+    "regionId": 10000009
+  },
+  {
+    "regionName": "J7HZ-F",
+    "regionId": 10000017
+  },
+  {
+    "regionName": "Kador",
+    "regionId": 10000052
+  },
+  {
+    "regionName": "Khanid",
+    "regionId": 10000049
+  },
+  {
+    "regionName": "Kor-Azor",
+    "regionId": 10000065
+  },
+  {
+    "regionName": "Lonetrek",
+    "regionId": 10000016
+  },
+  {
+    "regionName": "Malpais",
+    "regionId": 10000013
+  },
+  {
+    "regionName": "Metropolis",
+    "regionId": 10000042
+  },
+  {
+    "regionName": "Molden Heath",
+    "regionId": 10000028
+  },
+  {
+    "regionName": "Oasa",
+    "regionId": 10000040
+  },
+  {
+    "regionName": "Omist",
+    "regionId": 10000062
+  },
+  {
+    "regionName": "Outer Passage",
+    "regionId": 10000021
+  },
+  {
+    "regionName": "Outer Ring",
+    "regionId": 10000057
+  },
+  {
+    "regionName": "Paragon Soul",
+    "regionId": 10000059
+  },
+  {
+    "regionName": "Period Basis",
+    "regionId": 10000063
+  },
+  {
+    "regionName": "Perrigen Falls",
+    "regionId": 10000066
+  },
+  {
+    "regionName": "Placid",
+    "regionId": 10000048
+  },
+  {
+    "regionName": "Providence",
+    "regionId": 10000047
+  },
+  {
+    "regionName": "Pure Blind",
+    "regionId": 10000023
+  },
+  {
+    "regionName": "Querious",
+    "regionId": 10000050
+  },
+  {
+    "regionName": "Scalding Pass",
+    "regionId": 10000008
+  },
+  {
+    "regionName": "Sinq Laison",
+    "regionId": 10000032
+  },
+  {
+    "regionName": "Solitude",
+    "regionId": 10000044
+  },
+  {
+    "regionName": "Stain",
+    "regionId": 10000022
+  },
+  {
+    "regionName": "Syndicate",
+    "regionId": 10000041
+  },
+  {
+    "regionName": "Tash-Murkon",
+    "regionId": 10000020
+  },
+  {
+    "regionName": "Tenal",
+    "regionId": 10000045
+  },
+  {
+    "regionName": "Tenerifis",
+    "regionId": 10000061
+  },
+  {
+    "regionName": "The Bleak Lands",
+    "regionId": 10000038
+  },
+  {
+    "regionName": "The Citadel",
+    "regionId": 10000033
+  },
+  {
+    "regionName": "The Forge",
+    "regionId": 10000002
+  },
+  {
+    "regionName": "The Kalevala Expanse",
+    "regionId": 10000034
+  },
+  {
+    "regionName": "The Spire",
+    "regionId": 10000018
+  },
+  {
+    "regionName": "Tribute",
+    "regionId": 10000010
+  },
+  {
+    "regionName": "UUA-F4",
+    "regionId": 10000004
+  },
+  {
+    "regionName": "Vale of the Silent",
+    "regionId": 10000003
+  },
+  {
+    "regionName": "Venal",
+    "regionId": 10000015
+  },
+  {
+    "regionName": "Verge Vendor",
+    "regionId": 10000068
+  },
+  {
+    "regionName": "Wicked Creek",
+    "regionId": 10000006
+  }
+]
