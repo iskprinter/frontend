@@ -1,5 +1,10 @@
 {
   "name": "@iskprinter/frontend",
+  "description": "The frontend of iskprinter.com",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/iskprinter/frontend.git"
+  },
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
