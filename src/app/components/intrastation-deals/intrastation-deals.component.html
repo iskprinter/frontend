@@ -1,0 +1,60 @@
+<mat-card class="form-card">
+
+    <div class="align-content-center">
+        <button mat-raised-button class="spinner-with-text" color="accent" (click)="printIsk();"
+            [disabled]="requestInformer.isLoading | async">
+            <div class="align-content-center">
+                <mat-spinner *ngIf="requestInformer.isLoading | async" diameter="16" color="accent"></mat-spinner>
+                <span>Print ISK</span>
+            </div>
+        </button>
+    </div>
+
+    <mat-card-content>
+
+        <table mat-table [dataSource]="deals">
+            <ng-container matColumnDef="typeId">
+                <th mat-header-cell *matHeaderCellDef>Type ID</th>
+                <td mat-cell *matCellDef="let deal">{{deal.type.typeId}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="typeName">
+                <th mat-header-cell *matHeaderCellDef>Type Name</th>
+                <td mat-cell *matCellDef="let deal">{{deal.type.typeName}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="volume">
+                <th mat-header-cell *matHeaderCellDef>Volume, Daily</th>
+                <td mat-cell *matCellDef="let deal">{{deal.volume.toLocaleString()}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="buyPrice">
+                <th mat-header-cell *matHeaderCellDef>Buy Price, Unit</th>
+                <td mat-cell *matCellDef="let deal">{{deal.buyPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="sellPrice">
+                <th mat-header-cell *matHeaderCellDef>Sell Price, Unit</th>
+                <td mat-cell *matCellDef="let deal">{{deal.sellPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="fees">
+                <th mat-header-cell *matHeaderCellDef>Fees, Total</th>
+                <td mat-cell *matCellDef="let deal">{{deal.fees.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="profit">
+                <th mat-header-cell *matHeaderCellDef>Profit, Total</th>
+                <td mat-cell *matCellDef="let deal">{{deal.profit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedDealColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedDealColumns;"></tr>
+
+        </table>
+
+        <mat-paginator [hidePageSize]="true" [pageSize]="10" showFirstLastButtons></mat-paginator>
+
+    </mat-card-content>
+
+</mat-card>
