@@ -73,7 +73,7 @@ module.exports = function (config) {
       '@angular-devkit/build-angular/plugins/karma'
     ],
     port: 9876,
-    reporters: [ 'coverage-istanbul' ],
+    reporters: [ 'coverage-istanbul', 'progress' ],
     restartOnFileChange: true,
     singleRun: true
   });
