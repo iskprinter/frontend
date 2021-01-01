@@ -10,7 +10,7 @@
     "ng": "ng",
     "serve": "ng serve --watch",
     "build": "ng build",
-    "test": "ng test --codeCoverage=true --configuration=production",
+    "test": "ng test --codeCoverage=true",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
