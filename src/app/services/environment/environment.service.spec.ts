@@ -65,11 +65,58 @@ describe('EnvironmentService', () => {
     await blockUntilRequestReceived(httpTestingController);
     const req = httpTestingController.expectOne(requestToMatch);
     req.flush(mockBackendUrl);
-    const backendUrl = await pendingRequest;
+    const envVar = await pendingRequest;
 
     // Assert
     expect(req.request.method).toBe('GET');
-    expect(backendUrl).toEqual(mockBackendUrl);
+    expect(envVar).toEqual(mockBackendUrl);
+
+  });
+
+  it('should fail gracefully if the variable cannot be found', async () => {
+
+    // Arrange
+    const variableToRequest = 'NONEXISTENT_VAR';
+    const requestToMatch = `${mockFrontendUrl}/env/${variableToRequest}`;
+
+    // Act
+    const pendingRequest = service.getVariable(variableToRequest);
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestToMatch);
+    req.flush(
+      '<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>openresty/1.19.3.1</center>\n</body>\n</html>',
+      {
+        status: 404,
+        statusText: 'Not Found'
+      }
+    );
+    const envVar = await pendingRequest;
+
+    // Assert
+    expect(req.request.method).toBe('GET');
+    expect(envVar).toEqual(undefined);
+
+  });
+
+  it('should return the cached value if possible', async () => {
+
+    // Arrange
+    const variableToRequest = 'BACKEND_URL';
+    const requestToMatch = `${mockFrontendUrl}/env/${variableToRequest}`;
+
+    // Act
+    const pendingRequest = service.getVariable(variableToRequest);
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestToMatch);
+    req.flush(mockBackendUrl);
+    const envVar = await pendingRequest;
+    httpTestingController.verify();
+
+    const envVar2 = await service.getVariable(variableToRequest); // second request
+
+    // Assert
+    expect(req.request.method).toBe('GET');
+    expect(envVar2).toEqual(mockBackendUrl);
 
   });
 
