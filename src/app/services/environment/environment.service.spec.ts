@@ -1,24 +1,49 @@
-import { TestBed } from '@angular/core/testing';
+import { DOCUMENT } from '@angular/common';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { EnvironmentService } from './environment.service';
-import { HttpParams } from '@angular/common/http';
 
 describe('EnvironmentService', () => {
   let service: EnvironmentService;
-  let httpMock: HttpTestingController;
+  let httpTestingController: HttpTestingController;
+  let mockBackendUrl: string;
+  const defaultMockDocument = {
+    location: {
+      protocol: 'some-protocol:',
+      host: 'some-host:some-port'
+    }
+  };
+  let mockDocument: any = defaultMockDocument;
+  let mockFrontendUrl: string;
+
+  const blockUntilRequestReceived = async (httpMock: any) => {
+    const INTERVAL = 100; // ms
+    while ((httpMock as any).open.length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, INTERVAL));
+    }
+  }
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [EnvironmentService]
+      providers: [
+        EnvironmentService,
+        {
+          provide: DOCUMENT,
+          useValue: mockDocument
+        }
+      ]
     });
     service = TestBed.inject(EnvironmentService);
-    httpMock = TestBed.inject(HttpTestingController);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    mockBackendUrl = 'http://some-backend-url';
+    mockDocument = defaultMockDocument;
+    mockFrontendUrl = `${mockDocument.location.protocol}//${mockDocument.location.host}`
   });
 
   afterEach(() => {
-    httpMock.verify();
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
@@ -26,28 +51,25 @@ describe('EnvironmentService', () => {
   });
 
   it('should have the appropriate FRONTEND_URL', async () => {
-    expect(await service.getVariable('FRONTEND_URL')).toMatch(new RegExp('http://localhost:\\d+'));
+    expect(await service.getVariable('FRONTEND_URL')).toEqual(mockFrontendUrl);
   });
 
-  it('should have the appropriate BACKEND_URL', async () => {
+  it('should fetch the BACKEND_URL properly', async () => {
 
+    // Arrange
     const variableToRequest = 'BACKEND_URL';
-    const dummyBackendUrl = 'http://localhost:80/api';
-    const requestToMatch = `http://localhost:9876/env/${variableToRequest}`;
+    const requestToMatch = `${mockFrontendUrl}/env/${variableToRequest}`;
 
+    // Act
     const pendingRequest = service.getVariable(variableToRequest);
-
-    const INTERVAL = 100; // ms
-    while ((httpMock as any).open.length === 0) {
-      await new Promise((resolve) => setTimeout(resolve, INTERVAL));
-    }
-
-    const req = httpMock.expectOne(requestToMatch);
-    expect(req.request.method).toBe('GET');
-    req.flush(dummyBackendUrl);
-
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestToMatch);
+    req.flush(mockBackendUrl);
     const backendUrl = await pendingRequest;
-    expect(backendUrl).toEqual(dummyBackendUrl);
+
+    // Assert
+    expect(req.request.method).toBe('GET');
+    expect(backendUrl).toEqual(mockBackendUrl);
 
   });
 
