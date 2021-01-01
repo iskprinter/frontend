@@ -31,8 +31,8 @@ export class AuthenticatorService implements AuthenticatorInterface {
       this.environment.getVariable('FRONTEND_URL')
     ])
     const params = { 'callback-url': `${FRONTEND_URL}/code-receiver` };
-    const response = await this.http.get(`${BACKEND_URL}/login-url`, { observe: 'response', params }).toPromise();
-    return (response.body as any).loginUrl;
+    const response = await this.http.get<string>(`${BACKEND_URL}/login-url`, { observe: 'response', params }).toPromise();
+    return response.body;
   }
 
   logOut(): void {
