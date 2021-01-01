@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthenticatorInterface } from './authenticator.interface';
-import { EnvironmentService } from 'src/app/services/environment/environment.service'
+import { EnvironmentService } from 'src/app/services/environment/environment.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
@@ -27,8 +27,8 @@ export class AuthenticatorService implements AuthenticatorInterface {
       BACKEND_URL,
       FRONTEND_URL
     ] = await Promise.all([
-      this.environment.get('BACKEND_URL'),
-      this.environment.get('FRONTEND_URL')
+      this.environment.getVariable('BACKEND_URL'),
+      this.environment.getVariable('FRONTEND_URL')
     ])
     const params = { 'callback-url': `${FRONTEND_URL}/code-receiver` };
     const response = await this.http.get(`${BACKEND_URL}/login-url`, { observe: 'response', params }).toPromise();
@@ -43,7 +43,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   async getAccessTokenFromCode(code: string): Promise<string> {
     const body = { code };
-    const BACKEND_URL = await this.environment.get('BACKEND_URL');
+    const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
     const response = await this.http.post(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
     this.setAccessToken((response.body as any).accessToken);
@@ -54,7 +54,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
     const body = { accessToken };
     let response;
     try {
-      const backendUrl = await this.environment.get('BACKEND_URL');
+      const backendUrl = await this.environment.getVariable('BACKEND_URL');
       response = await this.http.post(`${backendUrl}/tokens`, body, { observe: 'response' })
         .toPromise();
     } catch (error) {
@@ -112,7 +112,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
   }
 
   async backendRequest(method: string, uri: string, options?: any): Promise<HttpResponse<Object>> {
-    const backendUrl = await this.environment.get('BACKEND_URL');
+    const backendUrl = await this.environment.getVariable('BACKEND_URL');
     return this.http.request(
       method,
       `${backendUrl}${uri}`,
