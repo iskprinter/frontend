@@ -21,7 +21,8 @@ module.exports = function (config) {
       // reports can be any that are listed here: https://github.com/istanbuljs/istanbuljs/tree/73c25ce79f91010d1ff073aa6ff3fd01114f90db/packages/istanbul-reports/lib
       reports: [
         'cobertura',
-        'text-summary'
+        'text-summary',
+        'html'
       ],
       // if using webpack and pre-loaders, work around webpack breaking the source path
       fixWebpackSourcePaths: true,
