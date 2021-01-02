@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
+import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
@@ -14,8 +15,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
     private http: HttpClient,
     private router: Router,
     private environment: EnvironmentService,
+    private localStorage: LocalStorageService,
   ) {
-    this.accessToken = window.localStorage.getItem('accessToken');
+    this.accessToken = this.localStorage.getItem('accessToken');
   }
 
   isLoggedIn(): boolean {
@@ -36,7 +38,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
   }
 
   logOut(): void {
-    window.localStorage.removeItem('accessToken');
+    this.localStorage.removeItem('accessToken');
     this.accessToken = undefined;
     this.router.navigate(['']);
   }
@@ -96,7 +98,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
   }
 
   getAccessToken(): string {
-    const accessToken = this.accessToken || window.localStorage.getItem('accessToken');
+    const accessToken = this.accessToken || this.localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token exists.');
     }
@@ -108,7 +110,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
       throw new Error("Expected response body to contain accessToken, but it didn't.");
     }
     this.accessToken = accessToken;
-    window.localStorage.setItem('accessToken', accessToken);
+    this.localStorage.setItem('accessToken', accessToken);
   }
 
   async backendRequest(method: string, uri: string, options?: any): Promise<HttpResponse<Object>> {

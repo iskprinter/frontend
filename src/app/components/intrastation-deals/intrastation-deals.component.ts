@@ -10,6 +10,7 @@ import { Character } from 'src/app/entities/Character';
 import { Deal } from 'src/app/entities/DealFinder/Deal';
 import { DealFinder } from 'src/app/entities/DealFinder/DealFinder';
 import { RequestInformerService } from 'src/app/services/request-informer/request-informer.service';
+import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 import regions from 'src/assets/regions.json';
 
 class Region {
@@ -47,6 +48,7 @@ export class IntrastationDealsComponent implements OnInit {
   constructor(
     public authenticatorService: AuthenticatorService,
     public requestInformer: RequestInformerService,
+    public localStorage: LocalStorageService,
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -69,7 +71,7 @@ export class IntrastationDealsComponent implements OnInit {
 
   async printIsk() {
     console.log('running...');
-    const dealFinder = new DealFinder(this.authenticatorService, window.localStorage);
+    const dealFinder = new DealFinder(this.authenticatorService, this.localStorage);
     const deals = await dealFinder.findDeals(this.character);
     this.deals = new MatTableDataSource(deals);
     this.deals.paginator = this.paginator
