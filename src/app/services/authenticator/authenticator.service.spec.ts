@@ -5,41 +5,23 @@ import { TestBed } from '@angular/core/testing';
 import { AuthenticatorService } from './authenticator.service';
 import { EnvironmentService } from '../environment/environment.service';
 import { LocalStorageService } from '../local-storage/local-storage.service';
+import { blockUntilRequestReceived } from 'src/app/test/utils';
+import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
+import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 
 describe('AuthenticatorService', () => {
-  
+
   let httpTestingController: HttpTestingController;
   let defaultMockBackendUrl = 'http://some-backend-url';
   let defaultMockFrontendUrl = 'http://some-frontend-url';
-  const mockEnvironment = {
-    BACKEND_URL: defaultMockBackendUrl,
-    FRONTEND_URL: defaultMockFrontendUrl
-  };
-  let mockEnvironmentService = {
-    getVariable: (varName) => {
-      return mockEnvironment[varName];
-    }
-  };
 
-  class MockLocalStorageService {
-    public storage: { [key: string]: any } = {};
-    clear(): void { this.storage = {}; }
-    getItem(key: string): any { return this.storage[key]; }
-    removeItem(key: string): void { delete this.storage[key]; }
-    setItem(key: string, value: any): void { this.storage[key] = value; }
-  };
-  let mockLocalStorageService = new MockLocalStorageService();
+  let mockLocalStorageService: MockLocalStorageService;
+  let mockEnvironmentService: MockEnvironmentService;
 
   let service: AuthenticatorService;
 
-  const blockUntilRequestReceived = async (httpMock: any) => {
-    const INTERVAL = 100; // ms
-    while ((httpMock as any).open.length === 0) {
-      await new Promise((resolve) => setTimeout(resolve, INTERVAL));
-    }
-  }
-
   beforeEach(() => {
+
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
@@ -48,17 +30,20 @@ describe('AuthenticatorService', () => {
       providers: [
         {
           provide: EnvironmentService,
-          useValue: mockEnvironmentService
+          useClass: MockEnvironmentService
         },
         {
           provide: LocalStorageService,
-          useValue: mockLocalStorageService
+          useClass: MockLocalStorageService
         }
       ]
     });
+    mockEnvironmentService = TestBed.inject(EnvironmentService) as any as MockEnvironmentService;
+    mockEnvironmentService.setVariable('BACKEND_URL', defaultMockBackendUrl);
+    mockEnvironmentService.setVariable('FRONTEND_URL', defaultMockFrontendUrl);
     httpTestingController = TestBed.inject(HttpTestingController);
+    mockLocalStorageService = TestBed.inject(LocalStorageService) as any as MockLocalStorageService;
     service = TestBed.inject(AuthenticatorService);
-    mockLocalStorageService.clear();
   });
 
   it('should be created', () => {
@@ -80,8 +65,8 @@ describe('AuthenticatorService', () => {
   it('should get the login url properly', async () => {
 
     // Arrange
-    const requestToMatch = `${mockEnvironment.BACKEND_URL}/login-url?callback-url=${mockEnvironment.FRONTEND_URL}/code-receiver`;
-    const mockResponse = `https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=${mockEnvironment.FRONTEND_URL}/code-receiver&client_id=a0b0fa3fd6ee47af82c9cb8ae3f51595&scope=esi-assets.read_assets.v1%20esi-characterstats.read.v1%20esi-clones.read_clones.v1%20esi-location.read_location.v1%20esi-markets.read_character_orders.v1%20esi-markets.structure_markets.v1%20esi-skills.read_skills.v1%20esi-universe.read_structures.v1%20esi-wallet.read_character_wallet.v1"`;
+    const requestToMatch = `${defaultMockBackendUrl}/login-url?callback-url=${defaultMockFrontendUrl}/code-receiver`;
+    const mockResponse = `https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=${defaultMockFrontendUrl}/code-receiver&client_id=a0b0fa3fd6ee47af82c9cb8ae3f51595&scope=esi-assets.read_assets.v1%20esi-characterstats.read.v1%20esi-clones.read_clones.v1%20esi-location.read_location.v1%20esi-markets.read_character_orders.v1%20esi-markets.structure_markets.v1%20esi-skills.read_skills.v1%20esi-universe.read_structures.v1%20esi-wallet.read_character_wallet.v1"`;
 
     // Act
     const pendingRequest = service.fetchLoginUrl();
