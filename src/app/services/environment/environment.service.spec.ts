@@ -5,9 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import { EnvironmentService } from './environment.service';
 
 describe('EnvironmentService', () => {
-  let service: EnvironmentService;
+
   let httpTestingController: HttpTestingController;
-  let mockBackendUrl: string;
   const defaultMockDocument = {
     location: {
       protocol: 'some-protocol:',
@@ -15,7 +14,13 @@ describe('EnvironmentService', () => {
     }
   };
   let mockDocument: any = defaultMockDocument;
-  let mockFrontendUrl: string;
+  let defaultMockBackendUrl = 'http://some-backend-url';
+  let defaultMockFrontendUrl = `${mockDocument.location.protocol}//${mockDocument.location.host}`;
+  const mockEnvironment = {
+    BACKEND_URL: defaultMockBackendUrl,
+    FRONTEND_URL: defaultMockFrontendUrl
+  };
+  let service: EnvironmentService;
 
   const blockUntilRequestReceived = async (httpMock: any) => {
     const INTERVAL = 100; // ms
@@ -35,11 +40,11 @@ describe('EnvironmentService', () => {
         }
       ]
     });
-    service = TestBed.inject(EnvironmentService);
     httpTestingController = TestBed.inject(HttpTestingController);
-    mockBackendUrl = 'http://some-backend-url';
+    mockEnvironment.BACKEND_URL = defaultMockBackendUrl;
+    mockEnvironment.FRONTEND_URL = defaultMockFrontendUrl;
     mockDocument = defaultMockDocument;
-    mockFrontendUrl = `${mockDocument.location.protocol}//${mockDocument.location.host}`
+    service = TestBed.inject(EnvironmentService);
   });
 
   afterEach(() => {
@@ -51,25 +56,25 @@ describe('EnvironmentService', () => {
   });
 
   it('should have the appropriate FRONTEND_URL', async () => {
-    expect(await service.getVariable('FRONTEND_URL')).toEqual(mockFrontendUrl);
+    expect(await service.getVariable('FRONTEND_URL')).toEqual(mockEnvironment.FRONTEND_URL);
   });
 
   it('should fetch the BACKEND_URL properly', async () => {
 
     // Arrange
     const variableToRequest = 'BACKEND_URL';
-    const requestToMatch = `${mockFrontendUrl}/env/${variableToRequest}`;
+    const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
 
     // Act
     const pendingRequest = service.getVariable(variableToRequest);
     await blockUntilRequestReceived(httpTestingController);
     const req = httpTestingController.expectOne(requestToMatch);
-    req.flush(mockBackendUrl);
+    req.flush(mockEnvironment.BACKEND_URL);
     const envVar = await pendingRequest;
 
     // Assert
     expect(req.request.method).toBe('GET');
-    expect(envVar).toEqual(mockBackendUrl);
+    expect(envVar).toEqual(mockEnvironment.BACKEND_URL);
 
   });
 
@@ -77,7 +82,7 @@ describe('EnvironmentService', () => {
 
     // Arrange
     const variableToRequest = 'NONEXISTENT_VAR';
-    const requestToMatch = `${mockFrontendUrl}/env/${variableToRequest}`;
+    const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
 
     // Act
     const pendingRequest = service.getVariable(variableToRequest);
@@ -102,13 +107,13 @@ describe('EnvironmentService', () => {
 
     // Arrange
     const variableToRequest = 'BACKEND_URL';
-    const requestToMatch = `${mockFrontendUrl}/env/${variableToRequest}`;
+    const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
 
     // Act
     const pendingRequest = service.getVariable(variableToRequest);
     await blockUntilRequestReceived(httpTestingController);
     const req = httpTestingController.expectOne(requestToMatch);
-    req.flush(mockBackendUrl);
+    req.flush(mockEnvironment.BACKEND_URL);
     const envVar = await pendingRequest;
     httpTestingController.verify();
 
@@ -116,7 +121,7 @@ describe('EnvironmentService', () => {
 
     // Assert
     expect(req.request.method).toBe('GET');
-    expect(envVar2).toEqual(mockBackendUrl);
+    expect(envVar2).toEqual(mockEnvironment.BACKEND_URL);
 
   });
 
