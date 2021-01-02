@@ -8,6 +8,7 @@ import { LocalStorageService } from '../local-storage/local-storage.service';
 import { blockUntilRequestReceived } from 'src/app/test/utils';
 import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
+import { Router } from '@angular/router';
 
 describe('AuthenticatorService', () => {
 
@@ -17,11 +18,11 @@ describe('AuthenticatorService', () => {
 
   let mockLocalStorageService: MockLocalStorageService;
   let mockEnvironmentService: MockEnvironmentService;
+  let spyRouter: jasmine.SpyObj<Router>;
 
   let service: AuthenticatorService;
 
   beforeEach(() => {
-
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
@@ -35,6 +36,10 @@ describe('AuthenticatorService', () => {
         {
           provide: LocalStorageService,
           useClass: MockLocalStorageService
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', ['navigate'])
         }
       ]
     });
@@ -43,6 +48,7 @@ describe('AuthenticatorService', () => {
     mockEnvironmentService.setVariable('FRONTEND_URL', defaultMockFrontendUrl);
     httpTestingController = TestBed.inject(HttpTestingController);
     mockLocalStorageService = TestBed.inject(LocalStorageService) as any as MockLocalStorageService;
+    spyRouter = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     service = TestBed.inject(AuthenticatorService);
   });
 
@@ -79,6 +85,14 @@ describe('AuthenticatorService', () => {
     expect(req.request.method).toBe('GET');
     expect(loginUrl).toEqual(mockResponse);
 
+  });
+
+  it('should log out properly', () => {
+    mockLocalStorageService.setItem('accessToken', 'some-token');
+    service.logOut();
+    const token = mockLocalStorageService.getItem('accessToken');
+    expect(token).toBe(undefined);
+    expect(spyRouter.navigate).toHaveBeenCalledWith(['']);
   });
 
 });
