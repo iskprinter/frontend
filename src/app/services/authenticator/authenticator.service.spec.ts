@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { AuthenticatorService } from './authenticator.service';
 import { EnvironmentService } from '../environment/environment.service';
+import { LocalStorageService } from '../local-storage/local-storage.service';
 
 describe('AuthenticatorService', () => {
   
@@ -19,6 +20,16 @@ describe('AuthenticatorService', () => {
       return mockEnvironment[varName];
     }
   };
+
+  class MockLocalStorageService {
+    public storage: { [key: string]: any } = {};
+    clear(): void { this.storage = {}; }
+    getItem(key: string): any { return this.storage[key]; }
+    removeItem(key: string): void { delete this.storage[key]; }
+    setItem(key: string, value: any): void { this.storage[key] = value; }
+  };
+  let mockLocalStorageService = new MockLocalStorageService();
+
   let service: AuthenticatorService;
 
   const blockUntilRequestReceived = async (httpMock: any) => {
@@ -38,20 +49,33 @@ describe('AuthenticatorService', () => {
         {
           provide: EnvironmentService,
           useValue: mockEnvironmentService
+        },
+        {
+          provide: LocalStorageService,
+          useValue: mockLocalStorageService
         }
       ]
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject(AuthenticatorService);
+    mockLocalStorageService.clear();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  // it('should properly assess whether the user is logged in', () => {
+  it('should properly assess that the user is logged in', () => {
+    mockLocalStorageService.setItem('accessToken', 'some-token');
+    const loginState = service.isLoggedIn();
+    expect(loginState).toBe(true);
+  });
 
-  // });
+  it('should properly assess that the user is logged out', () => {
+    mockLocalStorageService.removeItem('accessToken');
+    const loginState = service.isLoggedIn();
+    expect(loginState).toBe(false);
+  });
 
   it('should get the login url properly', async () => {
 

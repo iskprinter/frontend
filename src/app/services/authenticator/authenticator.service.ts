@@ -9,19 +9,15 @@ import { LocalStorageService } from 'src/app/services/local-storage/local-storag
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
 
-  private accessToken: string;
-
   constructor(
     private http: HttpClient,
     private router: Router,
     private environment: EnvironmentService,
     private localStorage: LocalStorageService,
-  ) {
-    this.accessToken = this.localStorage.getItem('accessToken');
-  }
+  ) { }
 
   isLoggedIn(): boolean {
-    return !!this.accessToken;
+    return !!this.localStorage.getItem('accessToken');
   }
 
   public async fetchLoginUrl(): Promise<string> {
@@ -39,7 +35,6 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   logOut(): void {
     this.localStorage.removeItem('accessToken');
-    this.accessToken = undefined;
     this.router.navigate(['']);
   }
 
@@ -48,8 +43,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
     const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
     const response = await this.http.post(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
-    this.setAccessToken((response.body as any).accessToken);
-    return this.accessToken;
+    const accessToken = (response.body as any).accessToken;
+    this.setAccessToken(accessToken);
+    return accessToken;
   }
 
   async renewAccessToken(accessToken: string): Promise<string> {
@@ -65,8 +61,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
         throw error;
       }
     }
-    this.setAccessToken((response.body as any).accessToken);
-    return this.accessToken;
+    const newAccessToken = (response.body as any).accessToken;
+    this.setAccessToken(newAccessToken);
+    return newAccessToken;
   }
 
   public async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
@@ -93,12 +90,12 @@ export class AuthenticatorService implements AuthenticatorInterface {
         throw error;
       }
     }
-    this.accessToken = await this.renewAccessToken(this.accessToken);
+    await this.renewAccessToken(this.getAccessToken());
     return await doRequest();
   }
 
   getAccessToken(): string {
-    const accessToken = this.accessToken || this.localStorage.getItem('accessToken');
+    const accessToken = this.localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token exists.');
     }
@@ -107,9 +104,8 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   private setAccessToken(accessToken: string): void {
     if (!accessToken) {
-      throw new Error("Expected response body to contain accessToken, but it didn't.");
+      throw new Error("Access token does not exist.");
     }
-    this.accessToken = accessToken;
     this.localStorage.setItem('accessToken', accessToken);
   }
 
