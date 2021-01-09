@@ -95,4 +95,25 @@ describe('AuthenticatorService', () => {
     expect(spyRouter.navigate).toHaveBeenCalledWith(['']);
   });
 
+  it('should properly exchange an access token for a code', async () => {
+
+    // Arrange
+    const requestToMatch = `${defaultMockBackendUrl}/tokens`;
+    const mockResponse = 'some-token';
+    const code = 'some-code';
+
+    // Act
+    const pendingRequest = service.getAccessTokenFromCode(code);
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestToMatch);
+    req.flush(mockResponse);
+    const accessToken = await pendingRequest;
+
+    // Assert
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(code);
+    expect(accessToken).toEqual(mockResponse);
+
+  });
+
 });
