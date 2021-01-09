@@ -4,22 +4,20 @@ import { Router } from '@angular/router';
 
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
+import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
-
-  private accessToken: string;
 
   constructor(
     private http: HttpClient,
     private router: Router,
     private environment: EnvironmentService,
-  ) {
-    this.accessToken = window.localStorage.getItem('accessToken');
-  }
+    private localStorage: LocalStorageService,
+  ) { }
 
   isLoggedIn(): boolean {
-    return !!this.accessToken;
+    return !!this.localStorage.getItem('accessToken');
   }
 
   public async fetchLoginUrl(): Promise<string> {
@@ -36,35 +34,41 @@ export class AuthenticatorService implements AuthenticatorInterface {
   }
 
   logOut(): void {
-    window.localStorage.removeItem('accessToken');
-    this.accessToken = undefined;
+    this.localStorage.removeItem('accessToken');
     this.router.navigate(['']);
   }
 
-  async getAccessTokenFromCode(code: string): Promise<string> {
-    const body = { code };
+  async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {
+    const body = {
+      proofType: 'authorizationCode',
+      proof: authorizationCode
+    };
     const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
-    const response = await this.http.post(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
+    const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
-    this.setAccessToken((response.body as any).accessToken);
-    return this.accessToken;
+    const accessToken = response.body;
+    this.setAccessToken(accessToken);
+    return accessToken;
   }
 
-  async renewAccessToken(accessToken: string): Promise<string> {
-    const body = { accessToken };
+  async getAccessTokenFromPriorAccessToken(priorAccessToken: string): Promise<string> {
+    const body = {
+      proofType: 'priorAccessToken',
+      proof: priorAccessToken
+    };
     let response;
     try {
       const backendUrl = await this.environment.getVariable('BACKEND_URL');
-      response = await this.http.post(`${backendUrl}/tokens`, body, { observe: 'response' })
-        .toPromise();
+      response = await this.http.post<string>(`${backendUrl}/tokens`, body, { observe: 'response' }).toPromise();
     } catch (error) {
       if (error.status === 404) {
         this.logOut();
         throw error;
       }
     }
-    this.setAccessToken((response.body as any).accessToken);
-    return this.accessToken;
+    const newAccessToken = response.body;
+    this.setAccessToken(newAccessToken);
+    return newAccessToken;
   }
 
   public async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
@@ -91,12 +95,12 @@ export class AuthenticatorService implements AuthenticatorInterface {
         throw error;
       }
     }
-    this.accessToken = await this.renewAccessToken(this.accessToken);
+    await this.getAccessTokenFromPriorAccessToken(this.getAccessToken());
     return await doRequest();
   }
 
   getAccessToken(): string {
-    const accessToken = this.accessToken || window.localStorage.getItem('accessToken');
+    const accessToken = this.localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token exists.');
     }
@@ -105,10 +109,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   private setAccessToken(accessToken: string): void {
     if (!accessToken) {
-      throw new Error("Expected response body to contain accessToken, but it didn't.");
+      throw new Error("Access token does not exist.");
     }
-    this.accessToken = accessToken;
-    window.localStorage.setItem('accessToken', accessToken);
+    this.localStorage.setItem('accessToken', accessToken);
   }
 
   async backendRequest(method: string, uri: string, options?: any): Promise<HttpResponse<Object>> {

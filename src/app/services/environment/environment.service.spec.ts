@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 
 import { EnvironmentService } from './environment.service';
+import { blockUntilRequestReceived } from 'src/app/test/utils';
 
 describe('EnvironmentService', () => {
 
@@ -21,13 +22,6 @@ describe('EnvironmentService', () => {
     FRONTEND_URL: defaultMockFrontendUrl
   };
   let service: EnvironmentService;
-
-  const blockUntilRequestReceived = async (httpMock: any) => {
-    const INTERVAL = 100; // ms
-    while ((httpMock as any).open.length === 0) {
-      await new Promise((resolve) => setTimeout(resolve, INTERVAL));
-    }
-  }
 
   beforeEach(() => {
     TestBed.configureTestingModule({
