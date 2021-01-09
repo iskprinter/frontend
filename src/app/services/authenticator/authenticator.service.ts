@@ -41,9 +41,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
   async getAccessTokenFromCode(code: string): Promise<string> {
     const body = { code };
     const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
-    const response = await this.http.post(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
+    const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
-    const accessToken = (response.body as any).accessToken;
+    const accessToken = response.body;
     this.setAccessToken(accessToken);
     return accessToken;
   }
@@ -53,15 +53,14 @@ export class AuthenticatorService implements AuthenticatorInterface {
     let response;
     try {
       const backendUrl = await this.environment.getVariable('BACKEND_URL');
-      response = await this.http.post(`${backendUrl}/tokens`, body, { observe: 'response' })
-        .toPromise();
+      response = await this.http.post<string>(`${backendUrl}/tokens`, body, { observe: 'response' }).toPromise();
     } catch (error) {
       if (error.status === 404) {
         this.logOut();
         throw error;
       }
     }
-    const newAccessToken = (response.body as any).accessToken;
+    const newAccessToken = response.body;
     this.setAccessToken(newAccessToken);
     return newAccessToken;
   }
