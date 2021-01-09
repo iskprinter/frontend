@@ -95,23 +95,52 @@ describe('AuthenticatorService', () => {
     expect(spyRouter.navigate).toHaveBeenCalledWith(['']);
   });
 
-  it('should properly exchange an access token for a code', async () => {
+  it('should properly exchange an authorization code for an access token', async () => {
 
     // Arrange
-    const requestToMatch = `${defaultMockBackendUrl}/tokens`;
-    const mockResponse = 'some-token';
-    const code = 'some-code';
+    const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
+    const authorizationCode = 'some-code';
+    const requestBodyOracle = {
+      proofType: 'authorizationCode',
+      proof: authorizationCode
+    };
+    const mockResponse = 'some-access-token';
 
     // Act
-    const pendingRequest = service.getAccessTokenFromCode(code);
+    const pendingRequest = service.getAccessTokenFromAuthorizationCode(authorizationCode);
     await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestToMatch);
+    const req = httpTestingController.expectOne(requestUrlOracle);
     req.flush(mockResponse);
     const accessToken = await pendingRequest;
 
     // Assert
     expect(req.request.method).toEqual('POST');
-    expect(req.request.body).toEqual(code);
+    expect(req.request.body).toEqual(requestBodyOracle);
+    expect(accessToken).toEqual(mockResponse);
+
+  });
+
+  it('should properly exchange a prior access token for a new access token', async () => {
+
+    // Arrange
+    const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
+    const priorAccessToken = 'some-prior-access-token';
+    const requestBodyOracle = {
+      proofType: 'priorAccessToken',
+      proof: priorAccessToken
+    };
+    const mockResponse = 'some-access-token';
+
+    // Act
+    const pendingRequest = service.getAccessTokenFromPriorAccessToken(priorAccessToken);
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle);
+    req.flush(mockResponse);
+    const accessToken = await pendingRequest;
+
+    // Assert
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(requestBodyOracle);
     expect(accessToken).toEqual(mockResponse);
 
   });

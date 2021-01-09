@@ -13,7 +13,7 @@ describe('CodeReceiverComponent', () => {
 
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
     isLoggedIn: () => true,
-    getAccessTokenFromCode: (code: string) => Promise.resolve('some-code')
+    getAccessTokenFromAuthorizationCode: (authorizationCode: string) => Promise.resolve('some-access-token')
   };
 
   let routerStub: Partial<Router> = {

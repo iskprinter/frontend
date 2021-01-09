@@ -20,7 +20,7 @@ export class CodeReceiverComponent implements OnInit {
     const parsedUrl = this.router.parseUrl(this.router.url);
     if (parsedUrl.queryParams.code) {
 
-      this.authenticatorService.getAccessTokenFromCode(parsedUrl.queryParams.code)
+      this.authenticatorService.getAccessTokenFromAuthorizationCode(parsedUrl.queryParams.code)
         .then(() => this.router.navigate(['']))
         .catch((error) => console.error(error));
 

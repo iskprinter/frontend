@@ -38,8 +38,11 @@ export class AuthenticatorService implements AuthenticatorInterface {
     this.router.navigate(['']);
   }
 
-  async getAccessTokenFromCode(code: string): Promise<string> {
-    const body = { code };
+  async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {
+    const body = {
+      proofType: 'authorizationCode',
+      proof: authorizationCode
+    };
     const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
     const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
@@ -48,8 +51,11 @@ export class AuthenticatorService implements AuthenticatorInterface {
     return accessToken;
   }
 
-  async renewAccessToken(accessToken: string): Promise<string> {
-    const body = { accessToken };
+  async getAccessTokenFromPriorAccessToken(priorAccessToken: string): Promise<string> {
+    const body = {
+      proofType: 'priorAccessToken',
+      proof: priorAccessToken
+    };
     let response;
     try {
       const backendUrl = await this.environment.getVariable('BACKEND_URL');
@@ -89,7 +95,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
         throw error;
       }
     }
-    await this.renewAccessToken(this.getAccessToken());
+    await this.getAccessTokenFromPriorAccessToken(this.getAccessToken());
     return await doRequest();
   }
 
