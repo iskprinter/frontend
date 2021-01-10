@@ -63,8 +63,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
     } catch (error) {
       if (error.status === 404) {
         this.logOut();
-        throw error;
+        return;
       }
+      throw error;
     }
     const newAccessToken = response.body;
     this.setAccessToken(newAccessToken);

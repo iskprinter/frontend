@@ -9,6 +9,7 @@ import { blockUntilRequestReceived } from 'src/app/test/utils';
 import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
+import { HttpParams } from '@angular/common/http';
 
 describe('AuthenticatorService', () => {
 
@@ -142,6 +143,192 @@ describe('AuthenticatorService', () => {
     expect(req.request.method).toEqual('POST');
     expect(req.request.body).toEqual(requestBodyOracle);
     expect(accessToken).toEqual(mockResponse);
+
+  });
+
+  it('should log out if a token is requested but the server responds with 404', async () => {
+
+    // Arrange
+    const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
+    const priorAccessToken = 'some-prior-access-token';
+    const mockResponse = `Did not find a matching entry for access token ${priorAccessToken}.`;
+    const logOutSpy = spyOn(service, 'logOut');
+
+    // Act
+    const pendingRequest = service.getAccessTokenFromPriorAccessToken(priorAccessToken);
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle);
+    req.flush(
+      mockResponse,
+      {
+        status: 404,
+        statusText: 'Not Found'
+      }
+    );
+    const accessToken = await pendingRequest;
+
+    // Assert
+    expect(logOutSpy).toHaveBeenCalled();
+    expect(accessToken).toEqual(undefined);
+
+  });
+
+  it('should raise an error if an unexpected error occurs', async () => {
+
+    // Arrange
+    const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
+    const priorAccessToken = 'some-prior-access-token';
+
+    // Assert and Act
+    const pendingExpectation = expectAsync(service.getAccessTokenFromPriorAccessToken(priorAccessToken))
+      .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/Http failure response/) }));
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle);
+    req.flush(
+      'Internal Server Error',
+      {
+        status: 500,
+        statusText: 'Internal Server Error'
+      }
+    );
+    await pendingExpectation;
+
+  });
+
+  // it('should throw an error if no access token is present', async () => {
+
+  //   // Arrange
+  //   const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+
+  //   // Assert and Act
+  //   await expectAsync(service.requestWithAuth(
+  //     'get',
+  //     'https://login.eveonline.com/oauth/verify'
+  //   ))
+  //     .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/No accessToken is present/) }));
+
+  // });
+
+  it('should use the intended HTTP method for requests with auth', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    const mockAccessToken = 'some-access-token';
+    mockLocalStorageService.setItem('accessToken', mockAccessToken);
+    const mockResponse = { data: 'some-fake-data' };
+
+    // Act
+    const pendingRequest = service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    );
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle);
+    req.flush(mockResponse);
+    await pendingRequest;
+
+    // Assert
+    expect(req.request.method).toEqual('GET');
+
+  });
+
+  it('should properly add the authorization header for requests with auth', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    const mockAccessToken = 'some-access-token';
+    mockLocalStorageService.setItem('accessToken', mockAccessToken);
+    const mockResponse = { data: 'some-fake-data' };
+
+    // Act
+    const pendingRequest = service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    );
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle);
+    req.flush(mockResponse);
+    await pendingRequest;
+
+    // Assert
+    expect(req.request.headers.get('authorization')).toEqual(`Bearer ${mockAccessToken}`);
+
+  });
+
+  it('should properly pass query parameters of requests with auth', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify?type_id=56';
+    const mockAccessToken = 'some-access-token';
+    mockLocalStorageService.setItem('accessToken', mockAccessToken);
+    const requestParamsOracle = {
+      type_id: '56',
+    };
+    const mockResponse = { data: 'some-fake-data' };
+
+    // Act
+    const pendingRequest = service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify',
+      { params: requestParamsOracle }
+    );
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle); // Assert
+    req.flush(mockResponse);
+    await pendingRequest;
+
+    // Assert
+    expect(req.request.params).toEqual(new HttpParams({ fromObject: requestParamsOracle }));
+
+  });
+
+  it('should properly pass the body of requests with auth', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    const mockAccessToken = 'some-access-token';
+    mockLocalStorageService.setItem('accessToken', mockAccessToken);
+    const requestBodyOracle = {
+      type_id: 56,
+    };
+    const mockResponse = { data: 'some-fake-data' };
+
+    // Act
+    const pendingRequest = service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify',
+      { body: requestBodyOracle }
+    );
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle); // Assert
+    req.flush(mockResponse);
+    await pendingRequest;
+
+    // Assert
+    expect(req.request.body).toEqual(requestBodyOracle);
+
+  });
+
+  it('should properly return the response of requests with auth', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    const mockAccessToken = 'some-access-token';
+    mockLocalStorageService.setItem('accessToken', mockAccessToken);
+    const mockResponse = { data: 'some-fake-data' };
+
+    // Act
+    const pendingRequest = service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    );
+    await blockUntilRequestReceived(httpTestingController);
+    const req = httpTestingController.expectOne(requestUrlOracle);
+    req.flush(mockResponse);
+    const response = await pendingRequest;
+
+    // Assert
+    expect(response.body).toEqual(mockResponse);
 
   });
 
