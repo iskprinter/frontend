@@ -207,6 +207,20 @@ describe('AuthenticatorService', () => {
 
   });
 
+  it('should log out if no access token is present', async () => {
+    const logOutSpy = spyOn(service, 'logOut');
+
+    // Assert and Act
+    await expectAsync(service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    ))
+      .toBeRejectedWithError(NoValidCredentialsError);
+    
+    expect(logOutSpy).toHaveBeenCalled();
+
+  });
+
   it('should use the intended HTTP method for requests with auth', async () => {
 
     // Arrange

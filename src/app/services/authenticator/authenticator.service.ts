@@ -76,6 +76,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
   public async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
 
     if (!this.isLoggedIn()) {
+      this.logOut();
       throw new NoValidCredentialsError();
     }
 
