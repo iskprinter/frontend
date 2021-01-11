@@ -10,6 +10,7 @@ import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
+import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 describe('AuthenticatorService', () => {
 
@@ -195,19 +196,16 @@ describe('AuthenticatorService', () => {
 
   });
 
-  // it('should throw an error if no access token is present', async () => {
+  it('should throw an error if no access token is present', async () => {
 
-  //   // Arrange
-  //   const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    // Assert and Act
+    await expectAsync(service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    ))
+      .toBeRejectedWithError(NoValidCredentialsError);
 
-  //   // Assert and Act
-  //   await expectAsync(service.requestWithAuth(
-  //     'get',
-  //     'https://login.eveonline.com/oauth/verify'
-  //   ))
-  //     .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/No accessToken is present/) }));
-
-  // });
+  });
 
   it('should use the intended HTTP method for requests with auth', async () => {
 

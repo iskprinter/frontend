@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
 import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
+import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
@@ -73,6 +74,11 @@ export class AuthenticatorService implements AuthenticatorInterface {
   }
 
   public async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
+
+    if (!this.isLoggedIn()) {
+      throw new NoValidCredentialsError();
+    }
+
     const doRequest = async () => this.http.request(
       method,
       url,
