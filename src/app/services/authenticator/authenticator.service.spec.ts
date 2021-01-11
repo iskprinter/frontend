@@ -10,6 +10,7 @@ import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
+import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 describe('AuthenticatorService', () => {
 
@@ -51,6 +52,10 @@ describe('AuthenticatorService', () => {
     mockLocalStorageService = TestBed.inject(LocalStorageService) as any as MockLocalStorageService;
     spyRouter = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     service = TestBed.inject(AuthenticatorService);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
@@ -133,7 +138,7 @@ describe('AuthenticatorService', () => {
     const mockResponse = 'some-access-token';
 
     // Act
-    const pendingRequest = service.getAccessTokenFromPriorAccessToken(priorAccessToken);
+    const pendingRequest = service._getAccessTokenFromPriorAccessToken(priorAccessToken);
     await blockUntilRequestReceived(httpTestingController);
     const req = httpTestingController.expectOne(requestUrlOracle);
     req.flush(mockResponse);
@@ -146,16 +151,17 @@ describe('AuthenticatorService', () => {
 
   });
 
-  it('should log out if a token is requested but the server responds with 404', async () => {
+  it('should fail to getAccessTokenFromPriorAccessToken if no valid access token is present', async () => {
 
     // Arrange
     const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
-    const priorAccessToken = 'some-prior-access-token';
+    const priorAccessToken = 'some-invalid-access-token';
     const mockResponse = `Did not find a matching entry for access token ${priorAccessToken}.`;
     const logOutSpy = spyOn(service, 'logOut');
 
     // Act
-    const pendingRequest = service.getAccessTokenFromPriorAccessToken(priorAccessToken);
+    const pendingExpectation = expectAsync(service._getAccessTokenFromPriorAccessToken(priorAccessToken))
+      .toBeRejectedWithError(NoValidCredentialsError);
     await blockUntilRequestReceived(httpTestingController);
     const req = httpTestingController.expectOne(requestUrlOracle);
     req.flush(
@@ -165,22 +171,18 @@ describe('AuthenticatorService', () => {
         statusText: 'Not Found'
       }
     );
-    const accessToken = await pendingRequest;
-
-    // Assert
-    expect(logOutSpy).toHaveBeenCalled();
-    expect(accessToken).toEqual(undefined);
+    await pendingExpectation;
 
   });
 
-  it('should raise an error if an unexpected error occurs', async () => {
+  it('should fail to getAccessTokenFromPriorAccessToken if an unexpected error occurs', async () => {
 
     // Arrange
     const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
     const priorAccessToken = 'some-prior-access-token';
 
     // Assert and Act
-    const pendingExpectation = expectAsync(service.getAccessTokenFromPriorAccessToken(priorAccessToken))
+    const pendingExpectation = expectAsync(service._getAccessTokenFromPriorAccessToken(priorAccessToken))
       .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/Http failure response/) }));
     await blockUntilRequestReceived(httpTestingController);
     const req = httpTestingController.expectOne(requestUrlOracle);
@@ -195,19 +197,114 @@ describe('AuthenticatorService', () => {
 
   });
 
-  // it('should throw an error if no access token is present', async () => {
+  it('should throw an error from requestWithAuth if no access token is present', async () => {
 
-  //   // Arrange
-  //   const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    // Assert and Act
+    await expectAsync(service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    ))
+      .toBeRejectedWithError(NoValidCredentialsError);
 
-  //   // Assert and Act
-  //   await expectAsync(service.requestWithAuth(
-  //     'get',
-  //     'https://login.eveonline.com/oauth/verify'
-  //   ))
-  //     .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/No accessToken is present/) }));
+  });
 
-  // });
+  it('should log out during requestWithAuth if no access token is present', async () => {
+
+    // Arrange
+    const logOutSpy = spyOn(service, 'logOut');
+
+    // Assert and Act
+    await expectAsync(service.requestWithAuth(
+      'get',
+      'https://login.eveonline.com/oauth/verify'
+    ))
+      .toBeRejectedWithError(NoValidCredentialsError);
+
+    // Assert
+    expect(logOutSpy).toHaveBeenCalled();
+
+  });
+
+  it('should throw an error from requestWithAuth if access token is present but invalid', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    const priorAccessToken = 'some-invalid-access-token';
+    mockLocalStorageService.setItem('accessToken', priorAccessToken);
+
+    // Act and Assert
+    const pendingExpectation = expectAsync(
+      service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify'
+      )
+    )
+      .toBeRejectedWithError(NoValidCredentialsError);
+
+    await blockUntilRequestReceived(httpTestingController);
+    const req1 = httpTestingController.expectOne(requestUrlOracle);
+    req1.flush(
+      'The provided access token has expired',
+      {
+        status: 401,
+        statusText: 'Unauthorized'
+      }
+    );
+
+    await blockUntilRequestReceived(httpTestingController);
+    const req2 = httpTestingController.expectOne(`${defaultMockBackendUrl}/tokens`);
+    req2.flush(
+      `Did not find a matching entry for access token ${priorAccessToken}.`,
+      {
+        status: 404,
+        statusText: 'Not Found'
+      }
+    );
+    await pendingExpectation;
+
+  });
+
+  it('should log out during requestWithAuth if access token is present but invalid', async () => {
+
+    // Arrange
+    const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+    const priorAccessToken = 'some-invalid-access-token';
+    mockLocalStorageService.setItem('accessToken', priorAccessToken);
+    const logOutSpy = spyOn(service, 'logOut');
+
+    // Act and Assert
+    const pendingExpectation = expectAsync(
+      service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify'
+      )
+    )
+      .toBeRejectedWithError(NoValidCredentialsError);
+
+    await blockUntilRequestReceived(httpTestingController);
+    const req1 = httpTestingController.expectOne(requestUrlOracle);
+    req1.flush(
+      'The provided access token has expired',
+      {
+        status: 401,
+        statusText: 'Unauthorized'
+      }
+    );
+
+    await blockUntilRequestReceived(httpTestingController);
+    const req2 = httpTestingController.expectOne(`${defaultMockBackendUrl}/tokens`);
+    req2.flush(
+      `Did not find a matching entry for access token ${priorAccessToken}.`,
+      {
+        status: 404,
+        statusText: 'Not Found'
+      }
+    );
+    await pendingExpectation;
+
+    expect(logOutSpy).toHaveBeenCalled();
+
+  });
 
   it('should use the intended HTTP method for requests with auth', async () => {
 

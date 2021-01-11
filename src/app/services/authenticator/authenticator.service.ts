@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
 import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
+import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
@@ -16,11 +17,47 @@ export class AuthenticatorService implements AuthenticatorInterface {
     private localStorage: LocalStorageService,
   ) { }
 
+  async _getAccessTokenFromPriorAccessToken(priorAccessToken: string): Promise<string> {
+    const body = {
+      proofType: 'priorAccessToken',
+      proof: priorAccessToken
+    };
+    let response;
+    try {
+      const backendUrl = await this.environment.getVariable('BACKEND_URL');
+      response = await this.http.post<string>(`${backendUrl}/tokens`, body, { observe: 'response' }).toPromise();
+    } catch (error) {
+      if (error.status === 404) {
+        this.logOut();
+        throw new NoValidCredentialsError();
+      }
+      throw error;
+    }
+    const newAccessToken = response.body;
+    this._setAccessToken(newAccessToken);
+    return newAccessToken;
+  }
+
+  _getAccessToken(): string {
+    const accessToken = this.localStorage.getItem('accessToken');
+    if (!accessToken) {
+      throw new Error('No access token exists.');
+    }
+    return accessToken;
+  }
+
+  _setAccessToken(accessToken: string): void {
+    if (!accessToken) {
+      throw new Error("Access token does not exist.");
+    }
+    this.localStorage.setItem('accessToken', accessToken);
+  }
+
   isLoggedIn(): boolean {
     return !!this.localStorage.getItem('accessToken');
   }
 
-  public async fetchLoginUrl(): Promise<string> {
+  async fetchLoginUrl(): Promise<string> {
     const [
       BACKEND_URL,
       FRONTEND_URL
@@ -47,32 +84,17 @@ export class AuthenticatorService implements AuthenticatorInterface {
     const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
     const accessToken = response.body;
-    this.setAccessToken(accessToken);
+    this._setAccessToken(accessToken);
     return accessToken;
   }
 
-  async getAccessTokenFromPriorAccessToken(priorAccessToken: string): Promise<string> {
-    const body = {
-      proofType: 'priorAccessToken',
-      proof: priorAccessToken
-    };
-    let response;
-    try {
-      const backendUrl = await this.environment.getVariable('BACKEND_URL');
-      response = await this.http.post<string>(`${backendUrl}/tokens`, body, { observe: 'response' }).toPromise();
-    } catch (error) {
-      if (error.status === 404) {
-        this.logOut();
-        return;
-      }
-      throw error;
-    }
-    const newAccessToken = response.body;
-    this.setAccessToken(newAccessToken);
-    return newAccessToken;
-  }
+  async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
 
-  public async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
+    if (!this.isLoggedIn()) {
+      this.logOut();
+      throw new NoValidCredentialsError();
+    }
+
     const doRequest = async () => this.http.request(
       method,
       url,
@@ -80,7 +102,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
         body: options?.body,
         headers: new HttpHeaders({
           ...options?.headers,
-          Authorization: `Bearer ${this.getAccessToken()}`,
+          Authorization: `Bearer ${this._getAccessToken()}`,
         }),
         observe: 'response',
         params: options?.params,
@@ -91,28 +113,24 @@ export class AuthenticatorService implements AuthenticatorInterface {
     try {
       return await doRequest();
     } catch (error) {
-      if (![401, 403].includes(error.status)) {
-        console.error(JSON.stringify(error));
+      if ([401, 403].includes(error.status)) {
+        // This is okay here. Attempt to get a fresh access token.
+      } else {
         throw error;
       }
     }
-    await this.getAccessTokenFromPriorAccessToken(this.getAccessToken());
+
+    try {
+      await this._getAccessTokenFromPriorAccessToken(this._getAccessToken());
+    } catch (error) {
+      if (error instanceof NoValidCredentialsError) {
+        this.logOut();
+      }
+      throw error;
+    }
+
     return await doRequest();
-  }
 
-  getAccessToken(): string {
-    const accessToken = this.localStorage.getItem('accessToken');
-    if (!accessToken) {
-      throw new Error('No access token exists.');
-    }
-    return accessToken;
-  }
-
-  private setAccessToken(accessToken: string): void {
-    if (!accessToken) {
-      throw new Error("Access token does not exist.");
-    }
-    this.localStorage.setItem('accessToken', accessToken);
   }
 
   async backendRequest(method: string, uri: string, options?: any): Promise<HttpResponse<Object>> {
