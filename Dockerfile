@@ -12,9 +12,6 @@ RUN apk update && apk add chromium
 ENV CHROME_BIN=/usr/bin/chromium-browser
 RUN npm test
 
-FROM scratch AS coverage
-COPY --from=test /app/coverage/. /
-
 FROM openresty/openresty:1.19.3.1-0-alpine AS package
 COPY --from=build /app/dist/* /usr/share/nginx/html/
 COPY ./nginx/. /
