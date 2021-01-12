@@ -3,7 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 
 import { EnvironmentService } from './environment.service';
-import { blockUntilRequestReceived } from 'src/app/test/utils';
+import { blockUntilRequestReceived } from 'src/app/test/HttpTester';
 
 describe('EnvironmentService', () => {
 
