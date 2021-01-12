@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { AuthenticatorService } from './authenticator.service';
 import { EnvironmentService } from '../environment/environment.service';
 import { LocalStorageService } from '../local-storage/local-storage.service';
-import { blockUntilRequestReceived, HttpTester } from 'src/app/test/HttpTester';
+import { HttpTester, blockUntilRequestReceived } from 'src/app/test/HttpTester';
 import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
@@ -83,11 +83,15 @@ describe('AuthenticatorService', () => {
     const mockResponse = `https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=${defaultMockFrontendUrl}/code-receiver&client_id=a0b0fa3fd6ee47af82c9cb8ae3f51595&scope=esi-assets.read_assets.v1%20esi-characterstats.read.v1%20esi-clones.read_clones.v1%20esi-location.read_location.v1%20esi-markets.read_character_orders.v1%20esi-markets.structure_markets.v1%20esi-skills.read_skills.v1%20esi-universe.read_structures.v1%20esi-wallet.read_character_wallet.v1"`;
     const httpTestSettings = {
       requestFunction: () => service.fetchLoginUrl(),
-      responses: [
+      transactions: [
         {
-          method: 'GET',
-          url: `${defaultMockBackendUrl}/login-url?callback-url=${defaultMockFrontendUrl}/code-receiver`,
-          body: mockResponse,
+          request: {
+            methodOracle: 'GET',
+            urlOracle: `${defaultMockBackendUrl}/login-url?callback-url=${defaultMockFrontendUrl}/code-receiver`,
+          },
+          response: {
+            body: mockResponse,
+          }
         }
       ]
     };
@@ -118,18 +122,29 @@ describe('AuthenticatorService', () => {
       proof: authorizationCode
     };
     const mockResponse = 'some-access-token';
+    const httpTestSettings = {
+      requestFunction: () => service.getAccessTokenFromAuthorizationCode(authorizationCode),
+      transactions: [
+        {
+          request: {
+            methodOracle: 'POST',
+            urlOracle: requestUrlOracle,
+            bodyOracle: requestBodyOracle
+          },
+          response: {
+            body: mockResponse,
+            // options: ,
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.getAccessTokenFromAuthorizationCode(authorizationCode);
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(mockResponse);
-    const accessToken = await pendingRequest;
+    const accessToken = await httpTester.test<string>(httpTestSettings);
 
     // Assert
-    expect(req.request.method).toEqual('POST');
-    expect(req.request.body).toEqual(requestBodyOracle);
     expect(accessToken).toEqual(mockResponse);
+    // expect(req.request.body).toEqual(requestBodyOracle);
 
   });
 
@@ -143,7 +158,7 @@ describe('AuthenticatorService', () => {
       proof: priorAccessToken
     };
     const mockResponse = 'some-access-token';
-
+    
     // Act
     const pendingRequest = service._getAccessTokenFromPriorAccessToken(priorAccessToken);
     await blockUntilRequestReceived(httpTestingController);
@@ -282,23 +297,35 @@ describe('AuthenticatorService', () => {
         'get',
         'https://login.eveonline.com/oauth/verify'
       ),
-      responses: [
+      transactions: [
         {
-          method: 'GET',
-          url: 'https://login.eveonline.com/oauth/verify',
-          body: 'The provided access token has expired',
-          options: {
-            status: 401,
-            statusText: 'Unauthorized'
+          request: {
+            methodOracle: 'GET',
+            urlOracle: 'https://login.eveonline.com/oauth/verify',
+          },
+          response: {
+            body: 'The provided access token has expired',
+            options: {
+              status: 401,
+              statusText: 'Unauthorized'
+            }
           }
         },
         {
-          method: 'POST',
-          url: `${defaultMockBackendUrl}/tokens`,
-          body: `Did not find a matching entry for access token ${priorAccessToken}.`,
-          options: {
-            status: 404,
-            statusText: 'Not Found'
+          request: {
+            methodOracle: 'POST',
+            urlOracle: `${defaultMockBackendUrl}/tokens`,
+            bodyOracle: {
+              proofType: 'priorAccessToken',
+              proof: 'some-invalid-access-token'
+            }
+          },
+          response: {
+            body: `Did not find a matching entry for access token ${priorAccessToken}.`,
+            options: {
+              status: 404,
+              statusText: 'Not Found'
+            }
           }
         }
       ]
