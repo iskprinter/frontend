@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { AuthenticatorService } from './authenticator.service';
 import { EnvironmentService } from '../environment/environment.service';
 import { LocalStorageService } from '../local-storage/local-storage.service';
-import { HttpTester, blockUntilRequestReceived } from 'src/app/test/HttpTester';
+import { HttpTester } from 'src/app/test/HttpTester';
 import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
@@ -157,18 +157,27 @@ describe('AuthenticatorService', () => {
       proof: priorAccessToken
     };
     const mockResponse = 'some-access-token';
-    
+    const httpTestSettings = {
+      requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle
+          },
+          response: {
+            body: mockResponse,
+          }
+        }
+      ]
+    };
+
     // Act
-    const pendingRequest = service._getAccessTokenFromPriorAccessToken(priorAccessToken);
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(mockResponse);
-    const accessToken = await pendingRequest;
+    const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
-    expect(req.request.method).toEqual('POST');
-    expect(req.request.body).toEqual(requestBodyOracle);
-    expect(accessToken).toEqual(mockResponse);
+    expect(httpTestResults.requests[0].method).toEqual('POST');
+    expect(httpTestResults.requests[0].body).toEqual(requestBodyOracle);
+    expect(httpTestResults.response).toEqual(mockResponse);
 
   });
 
@@ -178,21 +187,27 @@ describe('AuthenticatorService', () => {
     const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
     const priorAccessToken = 'some-invalid-access-token';
     const mockResponse = `Did not find a matching entry for access token ${priorAccessToken}.`;
-    const logOutSpy = spyOn(service, 'logOut');
+    const httpTestSettings = {
+      requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle
+          },
+          response: {
+            body: mockResponse,
+            options: {
+              status: 404,
+              statusText: 'Not Found'
+            }
+          }
+        }
+      ]
+    };
 
-    // Act
-    const pendingExpectation = expectAsync(service._getAccessTokenFromPriorAccessToken(priorAccessToken))
+    // Act and Assert
+    await expectAsync(httpTester.test<string>(httpTestSettings))
       .toBeRejectedWithError(NoValidCredentialsError);
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(
-      mockResponse,
-      {
-        status: 404,
-        statusText: 'Not Found'
-      }
-    );
-    await pendingExpectation;
 
   });
 
@@ -201,20 +216,27 @@ describe('AuthenticatorService', () => {
     // Arrange
     const requestUrlOracle = `${defaultMockBackendUrl}/tokens`;
     const priorAccessToken = 'some-prior-access-token';
+    const httpTestSettings = {
+      requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle
+          },
+          response: {
+            body: 'Internal Server Error',
+            options: {
+              status: 500,
+              statusText: 'Internal Server Error'
+            }
+          }
+        }
+      ]
+    };
 
-    // Assert and Act
-    const pendingExpectation = expectAsync(service._getAccessTokenFromPriorAccessToken(priorAccessToken))
+    // Act and Assert
+    await expectAsync(httpTester.test<string>(httpTestSettings))
       .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/Http failure response/) }));
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(
-      'Internal Server Error',
-      {
-        status: 500,
-        statusText: 'Internal Server Error'
-      }
-    );
-    await pendingExpectation;
 
   });
 
@@ -252,36 +274,42 @@ describe('AuthenticatorService', () => {
     const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
     const priorAccessToken = 'some-invalid-access-token';
     mockLocalStorageService.setItem('accessToken', priorAccessToken);
-
-    // Act and Assert
-    const pendingExpectation = expectAsync(
-      service.requestWithAuth(
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
         'get',
         'https://login.eveonline.com/oauth/verify'
-      )
-    )
+      ),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle
+          },
+          response: {
+            body: 'The provided access token has expired',
+            options: {
+              status: 401,
+              statusText: 'Unauthorized'
+            }
+          }
+        },
+        {
+          request: {
+            urlOracle: `${defaultMockBackendUrl}/tokens`
+          },
+          response: {
+            body: `Did not find a matching entry for access token ${priorAccessToken}.`,
+            options: {
+              status: 404,
+              statusText: 'Not Found'
+            }
+          }
+        },
+      ]
+    };
+
+    // Act and Assert
+    await expectAsync(httpTester.test<HttpResponse<object>>(httpTestSettings))
       .toBeRejectedWithError(NoValidCredentialsError);
-
-    await blockUntilRequestReceived(httpTestingController);
-    const req1 = httpTestingController.expectOne(requestUrlOracle);
-    req1.flush(
-      'The provided access token has expired',
-      {
-        status: 401,
-        statusText: 'Unauthorized'
-      }
-    );
-
-    await blockUntilRequestReceived(httpTestingController);
-    const req2 = httpTestingController.expectOne(`${defaultMockBackendUrl}/tokens`);
-    req2.flush(
-      `Did not find a matching entry for access token ${priorAccessToken}.`,
-      {
-        status: 404,
-        statusText: 'Not Found'
-      }
-    );
-    await pendingExpectation;
 
   });
 
@@ -299,7 +327,6 @@ describe('AuthenticatorService', () => {
       transactions: [
         {
           request: {
-            methodOracle: 'GET',
             urlOracle: 'https://login.eveonline.com/oauth/verify',
           },
           response: {
@@ -312,12 +339,7 @@ describe('AuthenticatorService', () => {
         },
         {
           request: {
-            methodOracle: 'POST',
-            urlOracle: `${defaultMockBackendUrl}/tokens`,
-            bodyOracle: {
-              proofType: 'priorAccessToken',
-              proof: 'some-invalid-access-token'
-            }
+            urlOracle: `${defaultMockBackendUrl}/tokens`
           },
           response: {
             body: `Did not find a matching entry for access token ${priorAccessToken}.`,
@@ -345,19 +367,28 @@ describe('AuthenticatorService', () => {
     const mockAccessToken = 'some-access-token';
     mockLocalStorageService.setItem('accessToken', mockAccessToken);
     const mockResponse = { data: 'some-fake-data' };
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify'
+      ),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle,
+          },
+          response: {
+            body: mockResponse
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.requestWithAuth(
-      'get',
-      'https://login.eveonline.com/oauth/verify'
-    );
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(mockResponse);
-    await pendingRequest;
+    const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
     // Assert
-    expect(req.request.method).toEqual('GET');
+    expect(httpTestResult.requests[0].method).toEqual('GET');
 
   });
 
@@ -368,19 +399,29 @@ describe('AuthenticatorService', () => {
     const mockAccessToken = 'some-access-token';
     mockLocalStorageService.setItem('accessToken', mockAccessToken);
     const mockResponse = { data: 'some-fake-data' };
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify'
+      ),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle,
+          },
+          response: {
+            body: mockResponse
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.requestWithAuth(
-      'get',
-      'https://login.eveonline.com/oauth/verify'
-    );
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(mockResponse);
-    await pendingRequest;
+    const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
     // Assert
-    expect(req.request.headers.get('authorization')).toEqual(`Bearer ${mockAccessToken}`);
+    expect(httpTestResult.requests[0].headers.get('authorization'))
+      .toEqual(`Bearer ${mockAccessToken}`);
 
   });
 
@@ -394,20 +435,30 @@ describe('AuthenticatorService', () => {
       type_id: '56',
     };
     const mockResponse = { data: 'some-fake-data' };
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify',
+        { params: requestParamsOracle }
+      ),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle,
+          },
+          response: {
+            body: mockResponse
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.requestWithAuth(
-      'get',
-      'https://login.eveonline.com/oauth/verify',
-      { params: requestParamsOracle }
-    );
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle); // Assert
-    req.flush(mockResponse);
-    await pendingRequest;
+    const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
     // Assert
-    expect(req.request.params).toEqual(new HttpParams({ fromObject: requestParamsOracle }));
+    expect(httpTestResult.requests[0].params)
+      .toEqual(new HttpParams({ fromObject: requestParamsOracle }));
 
   });
 
@@ -421,20 +472,29 @@ describe('AuthenticatorService', () => {
       type_id: 56,
     };
     const mockResponse = { data: 'some-fake-data' };
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify',
+        { body: requestBodyOracle }
+      ),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle,
+          },
+          response: {
+            body: mockResponse
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.requestWithAuth(
-      'get',
-      'https://login.eveonline.com/oauth/verify',
-      { body: requestBodyOracle }
-    );
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle); // Assert
-    req.flush(mockResponse);
-    await pendingRequest;
+    const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
     // Assert
-    expect(req.request.body).toEqual(requestBodyOracle);
+    expect(httpTestResult.requests[0].body).toEqual(requestBodyOracle);
 
   });
 
@@ -445,19 +505,28 @@ describe('AuthenticatorService', () => {
     const mockAccessToken = 'some-access-token';
     mockLocalStorageService.setItem('accessToken', mockAccessToken);
     const mockResponse = { data: 'some-fake-data' };
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify'
+      ),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestUrlOracle,
+          },
+          response: {
+            body: mockResponse
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.requestWithAuth(
-      'get',
-      'https://login.eveonline.com/oauth/verify'
-    );
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestUrlOracle);
-    req.flush(mockResponse);
-    const response = await pendingRequest;
+    const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
     // Assert
-    expect(response.body).toEqual(mockResponse);
+    expect(httpTestResult.response.body).toEqual(mockResponse);
 
   });
 
