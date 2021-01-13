@@ -34,7 +34,11 @@ export class HttpTester {
 
   async test<T>({ requestFunction, transactions }: HttpTestSettings<T>): Promise<HttpTestResult<T>> {
 
-    const pendingResponse = requestFunction();
+    let data;
+    const pendingResponse = requestFunction()
+      .then((d) => data = d)
+      .catch((e) => { throw e; });
+
     const requests = []
 
     for (const { request, response } of transactions) {
@@ -52,8 +56,9 @@ export class HttpTester {
       
     }
 
+    await pendingResponse;
     const httpTestResults = {
-      response: await pendingResponse,
+      response: data,
       requests
     };
 
