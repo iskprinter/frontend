@@ -25,7 +25,7 @@ interface HttpTestResult<T> {
 };
 
 interface HttpTestResult2<T> {
-  response: Promise<T>;
+  response: () => Promise<T>;
   requests: (HttpRequest<any> & { url: string })[];
 };
 
@@ -58,7 +58,7 @@ export class HttpTester {
         ...httpTest.request,
       });
       httpTest.flush(response.body, response.options);
-      
+
     }
 
     await pendingResponse;
@@ -73,31 +73,50 @@ export class HttpTester {
 
   async test2<T>({ requestFunction, transactions }: HttpTestSettings<T>): Promise<HttpTestResult2<T>> {
 
-    let data;
-    const pendingResponse = requestFunction()
-      .then((d) => data = d)
-      .catch((e) => { throw e; });
+    let data: any;
+    let error: Error;
+    let done: boolean = false;
 
     const requests = []
 
-    for (const { request, response } of transactions) {
+    // Start the server listening for requests
+    const server = (async () => {
+      for (const { request, response } of transactions) {
 
-      while ((this.httpTestingController as any).open.length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, this.requestPollinterval));
+        while ((this.httpTestingController as any).open.length === 0) {
+
+          // If the client has thrown an error, then stop waiting for additional requests to arrive.
+          if (done) { break; }
+
+          // Otherwise, wait a bit for a new request to arrive.
+          await new Promise((resolve) => setTimeout(resolve, this.requestPollinterval));
+
+        }
+        const requestedUrl = (this.httpTestingController as any).open[0];
+        const httpTest = this.httpTestingController.expectOne(requestedUrl);
+        requests.push({
+          url: requestedUrl,
+          ...httpTest.request,
+        });
+        httpTest.flush(response.body, response.options);
+
       }
-      const requestedUrl = (this.httpTestingController as any).open[0];
-      const httpTest = this.httpTestingController.expectOne(requestedUrl);
-      requests.push({
-        url: requestedUrl,
-        ...httpTest.request,
-      });
-      httpTest.flush(response.body, response.options);
-      
+    })();
+
+    try {
+      data = await requestFunction()
+    } catch (e) {
+      error = e;
+    } finally {
+      done = true;
     }
 
-    await pendingResponse;
+    // Wait for the server to stop.
+    await server;
+
+    // Collect the test results
     const httpTestResults = {
-      response: data,
+      response: () => (error ? Promise.reject(error) : Promise.resolve(data)),
       requests
     };
 
