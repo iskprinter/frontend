@@ -44,12 +44,12 @@ export class HttpTester {
       }
       const requestedUrl = (this.httpTestingController as any).open[0];
       const httpTest = this.httpTestingController.expectOne(requestedUrl);
-      httpTest.flush(response.body, response.options);
       requests.push({
         url: requestedUrl,
         ...httpTest.request,
       });
-
+      httpTest.flush(response.body, response.options);
+      
     }
 
     const httpTestResults = {

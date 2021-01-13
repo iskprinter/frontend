@@ -128,7 +128,6 @@ describe('AuthenticatorService', () => {
         {
           response: {
             body: mockResponse,
-            // options: ,
           }
         }
       ]
@@ -202,8 +201,8 @@ describe('AuthenticatorService', () => {
     };
 
     // Act and Assert
-    await expectAsync(httpTester.test<string>(httpTestSettings))
-      .toBeRejectedWithError(NoValidCredentialsError);
+    const expectation = expectAsync(httpTester.test<string>(httpTestSettings));
+    await expectation.toBeRejectedWithError(NoValidCredentialsError);
 
   });
 
