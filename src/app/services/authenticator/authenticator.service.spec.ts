@@ -201,7 +201,7 @@ describe('AuthenticatorService', () => {
     };
 
     // Act and Assert
-    const expectation = expectAsync(httpTester.test<string>(httpTestSettings));
+    const expectation = expectAsync(httpTester.test2<string>(httpTestSettings));
     await expectation.toBeRejectedWithError(NoValidCredentialsError);
 
   });
