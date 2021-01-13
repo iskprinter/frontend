@@ -85,9 +85,6 @@ describe('AuthenticatorService', () => {
       requestFunction: () => service.fetchLoginUrl(),
       transactions: [
         {
-          request: {
-            urlOracle: `${defaultMockBackendUrl}/login-url?callback-url=${defaultMockFrontendUrl}/code-receiver`,
-          },
           response: {
             body: mockResponse,
           }
@@ -99,6 +96,9 @@ describe('AuthenticatorService', () => {
     const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
+    expect(httpTestResults.requests[0].url).toBe(`${defaultMockBackendUrl}/login-url`);
+    expect(httpTestResults.requests[0].params)
+      .toEqual(new HttpParams({ fromObject: { 'callback-url': `${defaultMockFrontendUrl}/code-receiver` } }));
     expect(httpTestResults.requests[0].method).toBe('GET');
     expect(httpTestResults.response).toEqual(mockResponse);
 
@@ -126,9 +126,6 @@ describe('AuthenticatorService', () => {
       requestFunction: () => service.getAccessTokenFromAuthorizationCode(authorizationCode),
       transactions: [
         {
-          request: {
-            urlOracle: requestUrlOracle
-          },
           response: {
             body: mockResponse,
             // options: ,
@@ -141,6 +138,7 @@ describe('AuthenticatorService', () => {
     const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
+    expect(httpTestResults.requests[0].url).toBe(requestUrlOracle);
     expect(httpTestResults.requests[0].method).toEqual('POST');
     expect(httpTestResults.requests[0].body).toEqual(requestBodyOracle);
     expect(httpTestResults.response).toEqual(mockResponse);
@@ -161,9 +159,6 @@ describe('AuthenticatorService', () => {
       requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
       transactions: [
         {
-          request: {
-            urlOracle: requestUrlOracle
-          },
           response: {
             body: mockResponse,
           }
@@ -175,6 +170,7 @@ describe('AuthenticatorService', () => {
     const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
+    expect(httpTestResults.requests[0].url).toBe(requestUrlOracle);
     expect(httpTestResults.requests[0].method).toEqual('POST');
     expect(httpTestResults.requests[0].body).toEqual(requestBodyOracle);
     expect(httpTestResults.response).toEqual(mockResponse);

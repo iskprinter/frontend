@@ -1,4 +1,4 @@
-import { HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpRequest } from '@angular/common/http';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 type RequestFunction<T> = () => Promise<T>;
@@ -6,7 +6,7 @@ type RequestFunction<T> = () => Promise<T>;
 interface HttpTestSettings<T> {
   requestFunction: RequestFunction<T>;
   transactions: {
-    request: {
+    request?: {
       urlOracle: string,
     },
     response: {
@@ -21,7 +21,7 @@ interface HttpTestSettings<T> {
 
 interface HttpTestResult<T> {
   response: T;
-  requests: HttpRequest<any>[];
+  requests: (HttpRequest<any> & { url: string })[];
 };
 
 export class HttpTester {
@@ -42,11 +42,13 @@ export class HttpTester {
       while ((this.httpTestingController as any).open.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, this.requestPollinterval));
       }
-      const httpTest = this.httpTestingController.expectOne({
-        url: request.urlOracle
-      });
+      const requestedUrl = (this.httpTestingController as any).open[0];
+      const httpTest = this.httpTestingController.expectOne(requestedUrl);
       httpTest.flush(response.body, response.options);
-      requests.push(httpTest.request);
+      requests.push({
+        url: requestedUrl,
+        ...httpTest.request,
+      });
 
     }
 

@@ -3,11 +3,12 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 
 import { EnvironmentService } from './environment.service';
-import { blockUntilRequestReceived } from 'src/app/test/HttpTester';
+import { HttpTester } from 'src/app/test/HttpTester';
 
 describe('EnvironmentService', () => {
 
   let httpTestingController: HttpTestingController;
+  let httpTester: HttpTester;
   const defaultMockDocument = {
     location: {
       protocol: 'some-protocol:',
@@ -35,6 +36,7 @@ describe('EnvironmentService', () => {
       ]
     });
     httpTestingController = TestBed.inject(HttpTestingController);
+    httpTester = new HttpTester(httpTestingController);
     mockEnvironment.BACKEND_URL = defaultMockBackendUrl;
     mockEnvironment.FRONTEND_URL = defaultMockFrontendUrl;
     mockDocument = defaultMockDocument;
@@ -58,17 +60,26 @@ describe('EnvironmentService', () => {
     // Arrange
     const variableToRequest = 'BACKEND_URL';
     const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
+    const httpTestSettings = {
+      requestFunction: () => service.getVariable(variableToRequest),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestToMatch,
+          },
+          response: {
+            body: mockEnvironment.BACKEND_URL,
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.getVariable(variableToRequest);
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestToMatch);
-    req.flush(mockEnvironment.BACKEND_URL);
-    const envVar = await pendingRequest;
+    const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
-    expect(req.request.method).toBe('GET');
-    expect(envVar).toEqual(mockEnvironment.BACKEND_URL);
+    expect(httpTestResults.requests[0].method).toBe('GET');
+    expect(httpTestResults.response).toEqual(mockEnvironment.BACKEND_URL);
 
   });
 
@@ -77,23 +88,30 @@ describe('EnvironmentService', () => {
     // Arrange
     const variableToRequest = 'NONEXISTENT_VAR';
     const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
+    const httpTestSettings = {
+      requestFunction: () => service.getVariable(variableToRequest),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestToMatch,
+          },
+          response: {
+            body: '<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>openresty/1.19.3.1</center>\n</body>\n</html>',
+            options: {
+              status: 404,
+              statusText: 'Not Found'
+            }
+          }
+        }
+      ]
+    };
 
     // Act
-    const pendingRequest = service.getVariable(variableToRequest);
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestToMatch);
-    req.flush(
-      '<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>openresty/1.19.3.1</center>\n</body>\n</html>',
-      {
-        status: 404,
-        statusText: 'Not Found'
-      }
-    );
-    const envVar = await pendingRequest;
+    const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
-    expect(req.request.method).toBe('GET');
-    expect(envVar).toEqual(undefined);
+    expect(httpTestResults.requests[0].method).toBe('GET');
+    expect(httpTestResults.response).toEqual(undefined);
 
   });
 
@@ -102,20 +120,26 @@ describe('EnvironmentService', () => {
     // Arrange
     const variableToRequest = 'BACKEND_URL';
     const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
+    const httpTestSettings = {
+      requestFunction: () => service.getVariable(variableToRequest),
+      transactions: [
+        {
+          request: {
+            urlOracle: requestToMatch,
+          },
+          response: {
+            body: mockEnvironment.BACKEND_URL,
+          }
+        } // Only one response defined
+      ]
+    };
 
     // Act
-    const pendingRequest = service.getVariable(variableToRequest);
-    await blockUntilRequestReceived(httpTestingController);
-    const req = httpTestingController.expectOne(requestToMatch);
-    req.flush(mockEnvironment.BACKEND_URL);
-    const envVar = await pendingRequest;
-    httpTestingController.verify();
-
-    const envVar2 = await service.getVariable(variableToRequest); // second request
+    await httpTester.test<string>(httpTestSettings); // First request
+    const backendUrl = await service.getVariable(variableToRequest); // Second request should not need HTTP response
 
     // Assert
-    expect(req.request.method).toBe('GET');
-    expect(envVar2).toEqual(mockEnvironment.BACKEND_URL);
+    expect(backendUrl).toEqual(mockEnvironment.BACKEND_URL);
 
   });
 
