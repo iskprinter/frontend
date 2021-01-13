@@ -86,7 +86,6 @@ describe('AuthenticatorService', () => {
       transactions: [
         {
           request: {
-            methodOracle: 'GET',
             urlOracle: `${defaultMockBackendUrl}/login-url?callback-url=${defaultMockFrontendUrl}/code-receiver`,
           },
           response: {
@@ -97,10 +96,11 @@ describe('AuthenticatorService', () => {
     };
 
     // Act
-    const loginUrl = await httpTester.test<string>(httpTestSettings);
+    const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
-    expect(loginUrl).toEqual(mockResponse);
+    expect(httpTestResults.requests[0].method).toBe('GET');
+    expect(httpTestResults.response).toEqual(mockResponse);
 
   });
 
@@ -127,9 +127,7 @@ describe('AuthenticatorService', () => {
       transactions: [
         {
           request: {
-            methodOracle: 'POST',
-            urlOracle: requestUrlOracle,
-            bodyOracle: requestBodyOracle
+            urlOracle: requestUrlOracle
           },
           response: {
             body: mockResponse,
@@ -140,11 +138,12 @@ describe('AuthenticatorService', () => {
     };
 
     // Act
-    const accessToken = await httpTester.test<string>(httpTestSettings);
+    const httpTestResults = await httpTester.test<string>(httpTestSettings);
 
     // Assert
-    expect(accessToken).toEqual(mockResponse);
-    // expect(req.request.body).toEqual(requestBodyOracle);
+    expect(httpTestResults.requests[0].method).toEqual('POST');
+    expect(httpTestResults.requests[0].body).toEqual(requestBodyOracle);
+    expect(httpTestResults.response).toEqual(mockResponse);
 
   });
 
@@ -331,6 +330,7 @@ describe('AuthenticatorService', () => {
       ]
     };
 
+    // Act
     await expectAsync(httpTester.test<HttpResponse<Object>>(httpTestSettings))
       .toBeRejectedWithError(NoValidCredentialsError);
 

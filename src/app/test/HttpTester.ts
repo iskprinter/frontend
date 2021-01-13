@@ -1,3 +1,4 @@
+import { HttpRequest, HttpResponse } from '@angular/common/http';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 type RequestFunction<T> = () => Promise<T>;
@@ -6,9 +7,7 @@ interface HttpTestSettings<T> {
   requestFunction: RequestFunction<T>;
   transactions: {
     request: {
-      methodOracle: string,
       urlOracle: string,
-      bodyOracle?: any
     },
     response: {
       body: any,
@@ -20,6 +19,11 @@ interface HttpTestSettings<T> {
   }[];
 };
 
+interface HttpTestResult<T> {
+  response: T;
+  requests: HttpRequest<any>[];
+};
+
 export class HttpTester {
 
   requestPollinterval = 100; // ms
@@ -28,27 +32,30 @@ export class HttpTester {
     private httpTestingController: HttpTestingController
   ) { }
 
-  async test<T>({ requestFunction, transactions }: HttpTestSettings<T>): Promise<T> {
+  async test<T>({ requestFunction, transactions }: HttpTestSettings<T>): Promise<HttpTestResult<T>> {
 
-    const pendingPromise = requestFunction();
+    const pendingResponse = requestFunction();
+    const requests = []
 
     for (const { request, response } of transactions) {
 
       while ((this.httpTestingController as any).open.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, this.requestPollinterval));
       }
-      const req = this.httpTestingController.expectOne({
-        method: request.methodOracle,
+      const httpTest = this.httpTestingController.expectOne({
         url: request.urlOracle
       });
-      if (request.bodyOracle !== undefined) {
-        expect(req.request.body).toEqual(request.bodyOracle);
-      }
-      req.flush(response.body, response.options);
+      httpTest.flush(response.body, response.options);
+      requests.push(httpTest.request);
 
     }
 
-    return pendingPromise;
+    const httpTestResults = {
+      response: await pendingResponse,
+      requests
+    };
+
+    return httpTestResults;
 
   };
 
