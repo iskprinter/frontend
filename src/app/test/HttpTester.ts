@@ -20,6 +20,17 @@ interface HttpTestSettings<T> {
   }[];
 }
 
+interface HttpTestSettings2<T> {
+  requestFunction: RequestFunction<T>;
+  responses: {
+    body: any,
+    options?: {
+      status: number,
+      statusText: string
+    }
+  }[];
+}
+
 interface TestHttpRequest<T> extends HttpRequest<T> {
   url: string;
 }
@@ -76,7 +87,7 @@ export class HttpTester {
 
   };
 
-  async test2<T>({ requestFunction, transactions }: HttpTestSettings<T>): Promise<HttpTestResult2<T>> {
+  async test2<T>({ requestFunction, responses }: HttpTestSettings2<T>): Promise<HttpTestResult2<T>> {
 
 
     // Collect the test results
@@ -89,7 +100,7 @@ export class HttpTester {
 
     // Start the server listening for requests
     const server = (async () => {
-      for (const { request, response } of transactions) {
+      for (const response of responses) {
 
         while ((this.httpTestingController as any).open.length === 0) {
 

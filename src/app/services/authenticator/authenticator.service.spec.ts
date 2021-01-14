@@ -156,11 +156,9 @@ describe('AuthenticatorService', () => {
     const mockResponse = 'some-access-token';
     const httpTestSettings = {
       requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
-      transactions: [
+      responses: [
         {
-          response: {
-            body: mockResponse,
-          }
+          body: mockResponse,
         }
       ]
     };
@@ -184,17 +182,12 @@ describe('AuthenticatorService', () => {
     const mockResponse = `Did not find a matching entry for access token ${priorAccessToken}.`;
     const httpTestSettings = {
       requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
-      transactions: [
+      responses: [
         {
-          request: {
-            urlOracle: requestUrlOracle
-          },
-          response: {
-            body: mockResponse,
-            options: {
-              status: 404,
-              statusText: 'Not Found'
-            }
+          body: mockResponse,
+          options: {
+            status: 404,
+            statusText: 'Not Found'
           }
         }
       ]
