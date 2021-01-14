@@ -6,22 +6,6 @@ type RequestFunction<T> = () => Promise<T>;
 
 interface HttpTestSettings<T> {
   requestFunction: RequestFunction<T>;
-  transactions: {
-    request?: {
-      urlOracle: string,
-    },
-    response: {
-      body: any,
-      options?: {
-        status: number,
-        statusText: string
-      }
-    }
-  }[];
-}
-
-interface HttpTestSettings2<T> {
-  requestFunction: RequestFunction<T>;
   responses: {
     body: any,
     options?: {
@@ -36,11 +20,6 @@ interface TestHttpRequest<T> extends HttpRequest<T> {
 }
 
 interface HttpTestResult<T> {
-  response: T;
-  requests: (HttpRequest<any> & { url: string })[];
-}
-
-interface HttpTestResult2<T> {
   response: () => Promise<T>;
   requests: TestHttpRequest<any>[];
 }
@@ -53,45 +32,11 @@ export class HttpTester {
     private httpTestingController: HttpTestingController
   ) { }
 
-  async test<T>({ requestFunction, transactions }: HttpTestSettings<T>): Promise<HttpTestResult<T>> {
-
-    let data;
-    const pendingResponse = requestFunction()
-      .then((d) => data = d)
-      .catch((e) => { throw e; });
-
-    const requests = []
-
-    for (const { request, response } of transactions) {
-
-      while ((this.httpTestingController as any).open.length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, this.requestPollinterval));
-      }
-      const requestedUrl = (this.httpTestingController as any).open[0];
-      const httpTest = this.httpTestingController.expectOne(requestedUrl);
-      requests.push({
-        url: requestedUrl,
-        ...httpTest.request,
-      });
-      httpTest.flush(response.body, response.options);
-
-    }
-
-    await pendingResponse;
-    const httpTestResults = {
-      response: data,
-      requests
-    };
-
-    return httpTestResults;
-
-  };
-
-  async test2<T>({ requestFunction, responses }: HttpTestSettings2<T>): Promise<HttpTestResult2<T>> {
+  async test<T>({ requestFunction, responses }: HttpTestSettings<T>): Promise<HttpTestResult<T>> {
 
 
     // Collect the test results
-    const httpTestResults: HttpTestResult2<T> = {
+    const httpTestResults: HttpTestResult<T> = {
       response: undefined,
       requests: []
     };
