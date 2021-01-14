@@ -52,7 +52,13 @@ describe('EnvironmentService', () => {
   });
 
   it('should have the appropriate FRONTEND_URL', async () => {
-    expect(await service.getVariable('FRONTEND_URL')).toEqual(mockEnvironment.FRONTEND_URL);
+
+    // Act
+    const envVar = await service.getVariable('FRONTEND_URL')
+
+    // Assert
+    expect(envVar).toEqual(mockEnvironment.FRONTEND_URL);
+
   });
 
   it('should fetch the BACKEND_URL properly', async () => {
@@ -62,14 +68,9 @@ describe('EnvironmentService', () => {
     const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
     const httpTestSettings = {
       requestFunction: () => service.getVariable(variableToRequest),
-      transactions: [
+      responses: [
         {
-          request: {
-            urlOracle: requestToMatch,
-          },
-          response: {
-            body: mockEnvironment.BACKEND_URL,
-          }
+          body: mockEnvironment.BACKEND_URL,
         }
       ]
     };
@@ -79,7 +80,8 @@ describe('EnvironmentService', () => {
 
     // Assert
     expect(httpTestResults.requests[0].method).toBe('GET');
-    expect(httpTestResults.response).toEqual(mockEnvironment.BACKEND_URL);
+    expect(httpTestResults.requests[0].url).toBe(requestToMatch);
+    await expectAsync(httpTestResults.response()).toBeResolvedTo(mockEnvironment.BACKEND_URL);
 
   });
 
@@ -90,17 +92,12 @@ describe('EnvironmentService', () => {
     const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
     const httpTestSettings = {
       requestFunction: () => service.getVariable(variableToRequest),
-      transactions: [
+      responses: [
         {
-          request: {
-            urlOracle: requestToMatch,
-          },
-          response: {
-            body: '<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>openresty/1.19.3.1</center>\n</body>\n</html>',
-            options: {
-              status: 404,
-              statusText: 'Not Found'
-            }
+          body: '<html>\n<head><title>404 Not Found</title></head>\n<body>\n<center><h1>404 Not Found</h1></center>\n<hr><center>openresty/1.19.3.1</center>\n</body>\n</html>',
+          options: {
+            status: 404,
+            statusText: 'Not Found'
           }
         }
       ]
@@ -111,7 +108,8 @@ describe('EnvironmentService', () => {
 
     // Assert
     expect(httpTestResults.requests[0].method).toBe('GET');
-    expect(httpTestResults.response).toEqual(undefined);
+    expect(httpTestResults.requests[0].url).toBe(requestToMatch);
+    await expectAsync(httpTestResults.response()).toBeResolvedTo(undefined);
 
   });
 
@@ -122,23 +120,19 @@ describe('EnvironmentService', () => {
     const requestToMatch = `${mockEnvironment.FRONTEND_URL}/env/${variableToRequest}`;
     const httpTestSettings = {
       requestFunction: () => service.getVariable(variableToRequest),
-      transactions: [
+      responses: [
         {
-          request: {
-            urlOracle: requestToMatch,
-          },
-          response: {
-            body: mockEnvironment.BACKEND_URL,
-          }
+          body: mockEnvironment.BACKEND_URL,
         } // Only one response defined
       ]
     };
 
     // Act
-    await httpTester.test<string>(httpTestSettings); // First request
+    const httpTestResult = await httpTester.test<string>(httpTestSettings); // First request
     const backendUrl = await service.getVariable(variableToRequest); // Second request should not need HTTP response
 
     // Assert
+    expect(httpTestResult.requests[0].url).toBe(requestToMatch);
     expect(backendUrl).toEqual(mockEnvironment.BACKEND_URL);
 
   });
