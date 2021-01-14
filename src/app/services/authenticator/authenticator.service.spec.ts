@@ -166,13 +166,13 @@ describe('AuthenticatorService', () => {
     };
 
     // Act
-    const httpTestResults = await httpTester.test<string>(httpTestSettings);
+    const httpTestResults = await httpTester.test2<string>(httpTestSettings);
 
     // Assert
     expect(httpTestResults.requests[0].url).toBe(requestUrlOracle);
     expect(httpTestResults.requests[0].method).toEqual('POST');
     expect(httpTestResults.requests[0].body).toEqual(requestBodyOracle);
-    expect(httpTestResults.response).toEqual(mockResponse);
+    await expectAsync(httpTestResults.response()).toBeResolvedTo(mockResponse);
 
   });
 
@@ -200,8 +200,12 @@ describe('AuthenticatorService', () => {
       ]
     };
 
-    // Act and Assert
+    // Act
     const httpTestResults = await httpTester.test2<string>(httpTestSettings);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Assert
+    expect(httpTestResults.requests[0].url).toEqual(requestUrlOracle);
     await expectAsync(httpTestResults.response()).toBeRejectedWithError(NoValidCredentialsError);
 
   });
