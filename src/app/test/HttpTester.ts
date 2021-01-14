@@ -114,7 +114,7 @@ export class HttpTester {
 
         const testRequest: TestRequest = (this.httpTestingController as any).open[0];
         const requestedUrl = testRequest.request.url;
-        const httpTest = this.httpTestingController.expectOne(requestedUrl);
+        const httpTest = this.httpTestingController.expectOne(testRequest.request.urlWithParams);
 
         const testHttpRequest: TestHttpRequest<T> = httpTest.request;
         testHttpRequest.url = requestedUrl;

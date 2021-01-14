@@ -83,33 +83,42 @@ describe('AuthenticatorService', () => {
     const mockResponse = `https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=${defaultMockFrontendUrl}/code-receiver&client_id=a0b0fa3fd6ee47af82c9cb8ae3f51595&scope=esi-assets.read_assets.v1%20esi-characterstats.read.v1%20esi-clones.read_clones.v1%20esi-location.read_location.v1%20esi-markets.read_character_orders.v1%20esi-markets.structure_markets.v1%20esi-skills.read_skills.v1%20esi-universe.read_structures.v1%20esi-wallet.read_character_wallet.v1"`;
     const httpTestSettings = {
       requestFunction: () => service.fetchLoginUrl(),
-      transactions: [
+      responses: [
         {
-          response: {
-            body: mockResponse,
-          }
+          body: mockResponse,
         }
       ]
     };
 
     // Act
-    const httpTestResults = await httpTester.test<string>(httpTestSettings);
+    const httpTestResults = await httpTester.test2<string>(httpTestSettings);
 
     // Assert
     expect(httpTestResults.requests[0].url).toBe(`${defaultMockBackendUrl}/login-url`);
     expect(httpTestResults.requests[0].params)
-      .toEqual(new HttpParams({ fromObject: { 'callback-url': `${defaultMockFrontendUrl}/code-receiver` } }));
+      .toEqual(new HttpParams({
+        fromObject: {
+          'callback-url': `${defaultMockFrontendUrl}/code-receiver`
+        }
+      }));
     expect(httpTestResults.requests[0].method).toBe('GET');
-    expect(httpTestResults.response).toEqual(mockResponse);
+    await expectAsync(httpTestResults.response()).toBeResolvedTo(mockResponse);
 
   });
 
   it('should log out properly', () => {
+
+    // Arrange
     mockLocalStorageService.setItem('accessToken', 'some-token');
+
+    // Act
     service.logOut();
+
+    // Assert
     const token = mockLocalStorageService.getItem('accessToken');
     expect(token).toBe(undefined);
     expect(spyRouter.navigate).toHaveBeenCalledWith(['']);
+
   });
 
   it('should properly exchange an authorization code for an access token', async () => {
@@ -124,23 +133,21 @@ describe('AuthenticatorService', () => {
     const mockResponse = 'some-access-token';
     const httpTestSettings = {
       requestFunction: () => service.getAccessTokenFromAuthorizationCode(authorizationCode),
-      transactions: [
+      responses: [
         {
-          response: {
-            body: mockResponse,
-          }
+          body: mockResponse,
         }
       ]
     };
 
     // Act
-    const httpTestResults = await httpTester.test<string>(httpTestSettings);
+    const httpTestResults = await httpTester.test2<string>(httpTestSettings);
 
     // Assert
     expect(httpTestResults.requests[0].url).toBe(requestUrlOracle);
     expect(httpTestResults.requests[0].method).toEqual('POST');
     expect(httpTestResults.requests[0].body).toEqual(requestBodyOracle);
-    expect(httpTestResults.response).toEqual(mockResponse);
+    await expectAsync(httpTestResults.response()).toBeResolvedTo(mockResponse);
 
   });
 
@@ -210,35 +217,49 @@ describe('AuthenticatorService', () => {
     const priorAccessToken = 'some-prior-access-token';
     const httpTestSettings = {
       requestFunction: () => service._getAccessTokenFromPriorAccessToken(priorAccessToken),
-      transactions: [
+      responses: [
         {
-          request: {
-            urlOracle: requestUrlOracle
-          },
-          response: {
-            body: 'Internal Server Error',
-            options: {
-              status: 500,
-              statusText: 'Internal Server Error'
-            }
+          body: 'Internal Server Error',
+          options: {
+            status: 500,
+            statusText: 'Internal Server Error'
           }
         }
       ]
     };
 
-    // Act and Assert
-    await expectAsync(httpTester.test<string>(httpTestSettings))
-      .toBeRejectedWith(jasmine.objectContaining({ message: jasmine.stringMatching(/Http failure response/) }));
+    // Act
+    const httpTestResults = await httpTester.test2<string>(httpTestSettings);
+
+    //  Assert
+    expect(httpTestResults.requests[0].url).toBe(requestUrlOracle);
+    await expectAsync(httpTestResults.response())
+      .toBeRejectedWith(jasmine.objectContaining({
+        message: jasmine.stringMatching(/Http failure response/)
+      }));
 
   });
 
   it('should throw an error from requestWithAuth if no access token is present', async () => {
 
-    // Assert and Act
-    await expectAsync(service.requestWithAuth(
-      'get',
-      'https://login.eveonline.com/oauth/verify'
-    ))
+    // Arrange
+    const httpTestSettings = {
+      requestFunction: () => service.requestWithAuth(
+        'get',
+        'https://login.eveonline.com/oauth/verify'
+      ),
+      responses: [
+        {
+          body: 'some-token',
+        }
+      ]
+    };
+
+    // Act
+    const httpTestResults = await httpTester.test2<HttpResponse<Object>>(httpTestSettings);
+
+    // Assert
+    await expectAsync(httpTestResults.response())
       .toBeRejectedWithError(NoValidCredentialsError);
 
   });
