@@ -532,6 +532,80 @@ describe('AuthenticatorService', () => {
 
     });
 
+    it('should throw an error if the Eve API responses with a non-401/403 error', async () => {
+
+      // Arrange
+      const mockAccessToken = 'some-access-token';
+      mockLocalStorageService.setItem('accessToken', mockAccessToken);
+      const httpTestSettings = {
+        requestFunction: () => service.requestWithAuth(
+          'get',
+          'https://login.eveonline.com/oauth/verify'
+        ),
+        responses: [
+          {
+            body: 'Internal Server Error',
+            options: {
+              status: 500,
+              statusText: 'Internal Server Error'
+            }
+          }
+        ]
+      };
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
+
+      // Assert
+      await expectAsync(httpTestResult.response())
+        .toBeRejectedWith(jasmine.objectContaining({
+          message: jasmine.stringMatching(/Internal Server Error/)
+        }));
+    });
+
+    it('should be able to recover and from an expired token and complete the request', async () => {
+
+      // Arrange
+      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+      const priorAccessToken = 'some-expired-access-token';
+      mockLocalStorageService.setItem('accessToken', priorAccessToken);
+      const responseBodyOracle = 'some-data';
+      const httpTestSettings = {
+        requestFunction: () => service.requestWithAuth(
+          'get',
+          'https://login.eveonline.com/oauth/verify'
+        ),
+        responses: [
+          {
+            body: 'The provided access token has expired',
+            options: {
+              status: 401,
+              statusText: 'Unauthorized'
+            }
+          },
+          {
+            body: 'new-access-token',
+          },
+          {
+            body: 'some-data',
+          },
+        ]
+      };
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
+      expect(httpTestResult.requests[1].url).toBe(`${defaultMockBackendUrl}/tokens`);
+      expect(httpTestResult.requests[2].url).toBe(requestUrlOracle);
+      await expectAsync(httpTestResult.response())
+        .toBeResolvedTo(jasmine.objectContaining({
+          body: responseBodyOracle
+        }));
+
+    });
+
   });
 
 });
