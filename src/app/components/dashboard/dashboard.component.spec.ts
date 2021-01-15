@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { Character } from 'src/app/entities/Character';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
@@ -29,7 +29,7 @@ describe('DashboardComponent', () => {
     isLoggedIn: () => true,
   };
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ 
         DashboardComponent,
