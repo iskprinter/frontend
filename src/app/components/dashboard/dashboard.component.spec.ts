@@ -38,7 +38,7 @@ describe('DashboardComponent', () => {
       ],
       providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

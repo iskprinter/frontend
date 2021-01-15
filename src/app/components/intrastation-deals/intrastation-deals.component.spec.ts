@@ -27,7 +27,7 @@ describe('IntrastationDealsComponent', () => {
       ],
       providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

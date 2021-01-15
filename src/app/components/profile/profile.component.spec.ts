@@ -25,7 +25,7 @@ describe('ProfileComponent', () => {
       ],
       providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

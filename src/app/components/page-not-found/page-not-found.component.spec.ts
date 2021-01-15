@@ -14,7 +14,7 @@ describe('PageNotFoundComponent', () => {
         MatCardModule
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

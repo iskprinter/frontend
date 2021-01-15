@@ -18,7 +18,7 @@ describe('LoginComponent', () => {
 
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
     fetchLoginUrl: () => Promise.resolve('loginUrl')
-   };
+  };
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
