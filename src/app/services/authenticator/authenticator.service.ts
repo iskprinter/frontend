@@ -41,15 +41,12 @@ export class AuthenticatorService implements AuthenticatorInterface {
   _getAccessToken(): string {
     const accessToken = this.localStorage.getItem('accessToken');
     if (!accessToken) {
-      throw new Error('No access token exists.');
+      throw new NoValidCredentialsError();
     }
     return accessToken;
   }
 
   _setAccessToken(accessToken: string): void {
-    if (!accessToken) {
-      throw new Error("Access token does not exist.");
-    }
     this.localStorage.setItem('accessToken', accessToken);
   }
 
