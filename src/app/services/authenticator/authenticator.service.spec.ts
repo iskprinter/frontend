@@ -5,11 +5,11 @@ import { TestBed } from '@angular/core/testing';
 import { AuthenticatorService } from './authenticator.service';
 import { EnvironmentService } from '../environment/environment.service';
 import { LocalStorageService } from '../local-storage/local-storage.service';
-import { HttpTester } from 'src/app/test/HttpTester';
+import { HttpTester, HttpTestSettings } from 'src/app/test/HttpTester';
 import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
-import { HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 describe('AuthenticatorService', () => {
@@ -88,6 +88,7 @@ describe('AuthenticatorService', () => {
     it('should get the login url properly', async () => {
 
       // Arrange
+      const requestMethodOracle = 'get';
       const mockResponse = `https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=${defaultMockFrontendUrl}/code-receiver&client_id=a0b0fa3fd6ee47af82c9cb8ae3f51595&scope=esi-assets.read_assets.v1%20esi-characterstats.read.v1%20esi-clones.read_clones.v1%20esi-location.read_location.v1%20esi-markets.read_character_orders.v1%20esi-markets.structure_markets.v1%20esi-skills.read_skills.v1%20esi-universe.read_structures.v1%20esi-wallet.read_character_wallet.v1"`;
       const httpTestSettings = {
         requestFunction: () => service.fetchLoginUrl(),
@@ -109,7 +110,7 @@ describe('AuthenticatorService', () => {
             'callback-url': `${defaultMockFrontendUrl}/code-receiver`
           }
         }));
-      expect(httpTestResult.requests[0].method).toBe('GET');
+      expect(httpTestResult.requests[0].method.toLowerCase()).toBe(requestMethodOracle.toLowerCase());
       await expectAsync(httpTestResult.response()).toBeResolvedTo(mockResponse);
 
     });
@@ -251,44 +252,121 @@ describe('AuthenticatorService', () => {
 
   describe('Eve requests with authentication', () => {
 
-    it('should throw an error from requestWithAuth if no access token is present', async () => {
+    let requestMethodOracle: string;
+    let requestUrlOracle: string;
+    let requestParamsOracle: any;
+    let requestBodyOracle: any;
+    let priorAccessToken: string;
+    let responseBodyOracle: any;
+    let httpTestSettings: HttpTestSettings<any>;
 
-      // Arrange
-      const httpTestSettings = {
+    beforeEach(() => {
+
+      // Set happy defaults
+      requestMethodOracle = 'get';
+      requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+      requestParamsOracle = {
+        user: 'some-user',
+      };
+      requestBodyOracle = {
+        type_id: 56,
+      };
+      priorAccessToken = 'some-access-token';
+      mockLocalStorageService.setItem('accessToken', priorAccessToken);
+      responseBodyOracle = { data: 'some-fake-data' };
+      httpTestSettings = {
         requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
+          requestMethodOracle,
+          requestUrlOracle,
+          {
+            body: requestBodyOracle,
+            params: requestParamsOracle
+          }
         ),
         responses: [
           {
-            body: 'some-data',
+            body: responseBodyOracle,
           }
         ]
       };
+
+    });
+
+    it('should use the intended HTTP method for requests with auth', async () => {
 
       // Act
       const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
       // Assert
+      expect(httpTestResult.requests[0].method.toLowerCase()).toEqual(requestMethodOracle.toLowerCase());
+      expect(httpTestResult.requests[0].url).toEqual(requestUrlOracle);
+
+    });
+
+    it('should properly add the authorization header for requests with auth', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
+      expect(httpTestResult.requests[0].headers.get('authorization'))
+        .toEqual(`Bearer ${priorAccessToken}`);
+
+    });
+
+    it('should properly pass query parameters of requests with auth', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
+      expect(httpTestResult.requests[0].params)
+        .toEqual(new HttpParams({ fromObject: requestParamsOracle }));
+
+    });
+
+    it('should properly pass the body of requests with auth', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toEqual(requestUrlOracle);
+      expect(httpTestResult.requests[0].body).toEqual(requestBodyOracle);
+
+    });
+
+    it('should properly return the response of requests with auth', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
       await expectAsync(httpTestResult.response())
-        .toBeRejectedWithError(NoValidCredentialsError);
+        .toBeResolvedTo(jasmine.objectContaining({ body: responseBodyOracle }));
+
+    });
+
+    it('should throw an error from requestWithAuth if no access token is present', async () => {
+
+      // Arrange
+      mockLocalStorageService.clear();
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
+
+      // Assert
+      await expectAsync(httpTestResult.response()).toBeRejectedWithError(NoValidCredentialsError);
 
     });
 
     it('should log out during requestWithAuth if no access token is present', async () => {
 
       // Arrange
-      const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
-        ),
-        responses: [
-          {
-            body: 'some-data',
-          }
-        ]
-      };
+      mockLocalStorageService.clear();
       const logOutSpy = spyOn(service, 'logOut');
 
       // Act
@@ -303,13 +381,10 @@ describe('AuthenticatorService', () => {
     it('should throw an error from requestWithAuth if access token is present but invalid', async () => {
 
       // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const priorAccessToken = 'some-invalid-access-token';
-      mockLocalStorageService.setItem('accessToken', priorAccessToken);
       const httpTestSettings = {
         requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
+          requestMethodOracle,
+          requestUrlOracle
         ),
         responses: [
           {
@@ -342,13 +417,11 @@ describe('AuthenticatorService', () => {
     it('should log out during requestWithAuth if access token is present but invalid', async () => {
 
       // Arrange
-      const priorAccessToken = 'some-invalid-access-token';
-      mockLocalStorageService.setItem('accessToken', priorAccessToken);
       const logOutSpy = spyOn(service, 'logOut');
       const httpTestSettings = {
         requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
+          requestMethodOracle,
+          requestUrlOracle
         ),
         responses: [
           {
@@ -372,175 +445,20 @@ describe('AuthenticatorService', () => {
       const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
 
       // Act
-      expect(httpTestResult.requests[0].url).toBe('https://login.eveonline.com/oauth/verify');
+      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
       expect(httpTestResult.requests[1].url).toBe(`${defaultMockBackendUrl}/tokens`);
       await expectAsync(httpTestResult.response()).toBeRejectedWithError(NoValidCredentialsError);
       expect(logOutSpy).toHaveBeenCalled();
 
     });
 
-    it('should use the intended HTTP method for requests with auth', async () => {
-
-      // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const mockAccessToken = 'some-access-token';
-      mockLocalStorageService.setItem('accessToken', mockAccessToken);
-      const mockResponse = { data: 'some-fake-data' };
-      const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
-        ),
-        responses: [
-          {
-            body: mockResponse
-          }
-        ]
-      };
-
-      // Act
-      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
-
-      // Assert
-      expect(httpTestResult.requests[0].method).toEqual('GET');
-      expect(httpTestResult.requests[0].url).toEqual(requestUrlOracle);
-
-    });
-
-    it('should properly add the authorization header for requests with auth', async () => {
-
-      // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const mockAccessToken = 'some-access-token';
-      mockLocalStorageService.setItem('accessToken', mockAccessToken);
-      const mockResponse = { data: 'some-fake-data' };
-      const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
-        ),
-        responses: [
-          {
-            body: mockResponse
-          }
-        ]
-      };
-
-      // Act
-      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
-
-      // Assert
-      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
-      expect(httpTestResult.requests[0].headers.get('authorization'))
-        .toEqual(`Bearer ${mockAccessToken}`);
-
-    });
-
-    it('should properly pass query parameters of requests with auth', async () => {
-
-      // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const mockAccessToken = 'some-access-token';
-      mockLocalStorageService.setItem('accessToken', mockAccessToken);
-      const requestParamsOracle = {
-        type_id: '56',
-      };
-      const mockResponse = { data: 'some-fake-data' };
-      const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify',
-          { params: requestParamsOracle }
-        ),
-        responses: [
-          {
-            body: mockResponse
-          }
-        ]
-      };
-
-      // Act
-      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
-
-      // Assert
-      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
-      expect(httpTestResult.requests[0].params)
-        .toEqual(new HttpParams({ fromObject: requestParamsOracle }));
-
-    });
-
-    it('should properly pass the body of requests with auth', async () => {
-
-      // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const mockAccessToken = 'some-access-token';
-      mockLocalStorageService.setItem('accessToken', mockAccessToken);
-      const requestBodyOracle = {
-        type_id: 56,
-      };
-      const mockResponse = { data: 'some-fake-data' };
-      const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify',
-          {
-            body: requestBodyOracle
-          }
-        ),
-        responses: [
-          {
-            body: mockResponse
-          }
-        ]
-      };
-
-      // Act
-      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
-
-      // Assert
-      expect(httpTestResult.requests[0].url).toEqual(requestUrlOracle);
-      expect(httpTestResult.requests[0].body).toEqual(requestBodyOracle);
-
-    });
-
-    it('should properly return the response of requests with auth', async () => {
-
-      // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const mockAccessToken = 'some-access-token';
-      mockLocalStorageService.setItem('accessToken', mockAccessToken);
-      const mockResponse = { data: 'some-fake-data' };
-      const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
-        ),
-        responses: [
-          {
-            body: mockResponse
-          }
-        ]
-      };
-
-      // Act
-      const httpTestResult = await httpTester.test<HttpResponse<Object>>(httpTestSettings);
-
-      // Assert
-      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
-      await expectAsync(httpTestResult.response())
-        .toBeResolvedTo(jasmine.objectContaining({ body: mockResponse }));
-
-    });
-
     it('should throw an error if the Eve API responses with a non-401/403 error', async () => {
 
       // Arrange
-      const mockAccessToken = 'some-access-token';
-      mockLocalStorageService.setItem('accessToken', mockAccessToken);
       const httpTestSettings = {
         requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
+          requestMethodOracle,
+          requestUrlOracle
         ),
         responses: [
           {
@@ -566,14 +484,10 @@ describe('AuthenticatorService', () => {
     it('should be able to recover and from an expired token and complete the request', async () => {
 
       // Arrange
-      const requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
-      const priorAccessToken = 'some-expired-access-token';
-      mockLocalStorageService.setItem('accessToken', priorAccessToken);
-      const responseBodyOracle = 'some-data';
       const httpTestSettings = {
         requestFunction: () => service.requestWithAuth(
-          'get',
-          'https://login.eveonline.com/oauth/verify'
+          requestMethodOracle,
+          requestUrlOracle
         ),
         responses: [
           {
@@ -587,7 +501,7 @@ describe('AuthenticatorService', () => {
             body: 'new-access-token',
           },
           {
-            body: 'some-data',
+            body: responseBodyOracle,
           },
         ]
       };
@@ -599,6 +513,172 @@ describe('AuthenticatorService', () => {
       expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
       expect(httpTestResult.requests[1].url).toBe(`${defaultMockBackendUrl}/tokens`);
       expect(httpTestResult.requests[2].url).toBe(requestUrlOracle);
+      await expectAsync(httpTestResult.response())
+        .toBeResolvedTo(jasmine.objectContaining({
+          body: responseBodyOracle
+        }));
+
+    });
+
+    it('should throw an error if a new token is requested but the backend responds with a non-404 error', async () => {
+
+      // Arrange
+      const httpTestSettings = {
+        requestFunction: () => service.requestWithAuth(
+          requestMethodOracle,
+          requestUrlOracle
+        ),
+        responses: [
+          {
+            body: 'The provided access token has expired',
+            options: {
+              status: 401,
+              statusText: 'Unauthorized'
+            }
+          },
+          {
+            body: 'Forbidden',
+            options: {
+              status: 403,
+              statusText: 'Forbidden'
+            }
+          },
+        ]
+      };
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      await expectAsync(httpTestResult.response())
+        .toBeRejectedWith(jasmine.objectContaining({
+          message: jasmine.stringMatching(/Forbidden/)
+        }));
+
+    });
+
+  });
+
+  describe('Backend requests with authentication', () => {
+
+    let requestMethodOracle: string;
+    let requestUrlOracle: string;
+    let requestPathOracle: string;
+    let priorAccessToken: string;
+    let requestHeadersOracle: any;
+    let requestBodyOracle: any;
+    let requestParamsOracle: any;
+    let responseBodyOracle: any;
+    let httpTestSettings: HttpTestSettings<any>;
+
+    beforeEach(() => {
+
+      // Set happy defaults
+      requestMethodOracle = 'get';
+      requestUrlOracle = defaultMockBackendUrl;
+      requestPathOracle = '/some-path';
+      priorAccessToken = 'some-access-token';
+      mockLocalStorageService.setItem('accessToken', priorAccessToken);
+      requestHeadersOracle = {
+        'content-type': 'application/json'
+      }
+      requestParamsOracle = {
+        user: 'some-user-id'
+      };
+      requestBodyOracle = {
+        user: 'some-user-id'
+      };
+      responseBodyOracle = 'some-data';
+      httpTestSettings = {
+        requestFunction: () => service.backendRequest(
+          requestMethodOracle,
+          requestPathOracle,
+          {
+            headers: requestHeadersOracle,
+            body: requestBodyOracle,
+            params: requestParamsOracle
+          }
+        ),
+        responses: [
+          {
+            body: responseBodyOracle,
+          }
+        ]
+      };
+
+    });
+
+    it('should send the request to the proper address', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toBe(`${requestUrlOracle}${requestPathOracle}`);
+      await expectAsync(httpTestResult.response())
+        .toBeResolvedTo(jasmine.objectContaining({
+          body: responseBodyOracle
+        }));
+
+    });
+
+    it('should properly pass the request body', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].body).toEqual(requestBodyOracle);
+      await expectAsync(httpTestResult.response())
+        .toBeResolvedTo(jasmine.objectContaining({
+          body: responseBodyOracle
+        }));
+
+    });
+
+    it('should properly pass headers parameters', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      const exampleHeaderKey = Object.keys(requestHeadersOracle)[0];
+      const exampleHeaderValue = requestHeadersOracle[exampleHeaderKey];
+      expect(httpTestResult.requests[0].headers.get(exampleHeaderKey)).toEqual(exampleHeaderValue);
+
+    });
+
+    it('should properly pass url parameters', async () => {
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].params).toEqual(new HttpParams({
+        fromObject: requestParamsOracle
+      }));
+
+    });
+
+    it('should not require request headers, params, or body', async () => {
+
+      // Arrange
+      httpTestSettings = {
+        requestFunction: () => service.backendRequest(
+          requestMethodOracle,
+          requestPathOracle,
+        ),
+        responses: [
+          {
+            body: responseBodyOracle,
+          }
+        ]
+      };
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Asserts
       await expectAsync(httpTestResult.response())
         .toBeResolvedTo(jasmine.objectContaining({
           body: responseBodyOracle

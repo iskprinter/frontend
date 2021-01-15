@@ -4,7 +4,7 @@ import { TestRequest } from '@angular/common/http/testing';
 
 type RequestFunction<T> = () => Promise<T>;
 
-interface HttpTestSettings<T> {
+export interface HttpTestSettings<T> {
   requestFunction: RequestFunction<T>;
   responses: {
     body: any,
