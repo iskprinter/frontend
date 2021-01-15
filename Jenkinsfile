@@ -15,6 +15,11 @@ pipeline {
                 sh 'docker build . --target install'
             }
         }
+        stage('Build') {
+            steps {
+                sh 'docker build . --target build'
+            }
+        }
         stage('Test') {
             steps {
                 sh '''
@@ -27,11 +32,6 @@ pipeline {
                     adapters: [coberturaAdapter('coverage/cobertura-coverage.xml')],
                     failNoReports: true
                 )
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'docker build . --target build'
             }
         }
         stage('Package') {
