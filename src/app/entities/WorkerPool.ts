@@ -7,7 +7,7 @@ export class WorkerPool {
 
     private size: number;
     private queue: { observer: Subscriber<any>, task: () => Promise<any> }[] = [];
-    private runningWorkers: number = 0;
+    private runningWorkers = 0;
     private maxRetries: number;
 
     constructor(

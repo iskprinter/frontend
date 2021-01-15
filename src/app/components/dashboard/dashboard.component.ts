@@ -8,16 +8,13 @@ import { Character } from 'src/app/entities/Character';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
 
   character: Character;
 
   constructor(
     public authenticatorService: AuthenticatorService,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   setCharacter(character: Character) {
     this.character = character;

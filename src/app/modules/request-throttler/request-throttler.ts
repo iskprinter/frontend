@@ -14,7 +14,7 @@ export class RequestThrottler implements HttpInterceptor {
 
   private static readonly THROTTLE_LIMIT = 16;
 
-  private runningRequestLoops: number = 0;
+  private runningRequestLoops = 0;
   private requestQueue: [
     Subscriber<HttpEvent<any>>,
     Observable<HttpEvent<any>>,

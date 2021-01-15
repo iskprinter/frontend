@@ -173,7 +173,7 @@ export class DealFinder {
         }
 
         let buyFraction;
-        const firstDate: number = Number(new Date(data[0].date));
+        const firstDate = Number(new Date(data[0].date));
         let dateSpan;
 
         for (let i = 0; i < data.length; i += 1) {
