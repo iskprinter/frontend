@@ -11,7 +11,7 @@ import { CharacterService } from 'src/app/services/character/character.service';
 })
 export class ProfileComponent implements OnInit {
 
-  character: any;
+  character: Character;
   @Output() characterUpdate = new EventEmitter<Character>();
 
   constructor(
@@ -23,11 +23,16 @@ export class ProfileComponent implements OnInit {
     if (this.authenticatorService.isLoggedIn()) {
 
       this.character = await this.characterService.getCharacter();
-      await Promise.all([
-        this.character.getLocation(),
+      const [
+        characterLocation,
+        characterPortrait,
+        characterWalletBalance
+      ] = await Promise.all([
+        this.characterService.getLocationOfCharacter(this.character),
         this.character.getPortrait(),
         this.character.getWalletBalance()
       ]);
+      this.character.location = characterLocation;
       this.characterUpdate.emit(this.character);
     }
   }

@@ -1,21 +1,23 @@
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { Order } from './Order';
 
+export type CharacterLocation = {
+  solarSystemId: number;
+  solarSystemName: string;
+  constellationId: number;
+  constellationName: string;
+  regionId: number;
+  regionName: string,
+  stationId?: number;
+  structureId?: number;
+  structureName?: string;
+}
+
 export class Character {
 
   id: number;
   name: string;
-  location: {
-    solarSystemId: number,
-    solarSystemName: string,
-    constellationId: number,
-    constellationName: string,
-    regionId: number,
-    regionName: string,
-    stationId: number | undefined,
-    structureId: number | undefined,
-    structureName?: string | undefined,
-  };
+  location: CharacterLocation;
   orders: Order[];
   portrait: string;
   skills: {
@@ -27,61 +29,6 @@ export class Character {
   constructor(
     private authenticatorService: AuthenticatorService
   ) { };
-
-  async getLocation(): Promise<Character> {
-
-    // Get basic location data, including solar system ID
-    const characterLocationResponse = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/characters/${this.id}/location/`
-    );
-    const locationData: any = characterLocationResponse.body;
-
-    // Get solar system name and parent constellation ID
-    const solarSystemResponse = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/universe/systems/${locationData.solar_system_id}`
-    );
-    const solarSystemData: any = solarSystemResponse.body;
-
-    // Get constellation name and parent region ID
-    const constellationResponse = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/universe/constellations/${solarSystemData.constellation_id}`
-    );
-    const constellationData: any = constellationResponse.body;
-
-    // Get region name
-    const regionResponse = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/universe/regions/${constellationData.region_id}`
-    );
-    const regionData: any = regionResponse.body;
-
-    this.location = {
-      solarSystemId: locationData.solar_system_id,
-      solarSystemName: solarSystemData.name,
-      constellationId: solarSystemData.constellation_id,
-      constellationName: constellationData.name,
-      regionId: constellationData.region_id,
-      regionName: regionData.name,
-      stationId: locationData.station_id,
-      structureId: locationData.structure_id,
-      structureName: locationData.structure_name,
-    };
-
-    if (!this.location.structureId) {
-      return this;
-    }
-
-    const structureInfoResponse = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/universe/structures/${this.location.structureId}`
-    );
-    this.location.structureName = structureInfoResponse.body.name;
-
-    return this;
-  }
 
   async getOrders(): Promise<Character> {
     const response = await this.authenticatorService.eveRequest<any>(
