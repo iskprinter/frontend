@@ -130,9 +130,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   }
 
-  async backendRequest(method: string, uri: string, options?: any): Promise<HttpResponse<Object>> {
+  async backendRequest<R>(method: string, uri: string, options?: any): Promise<HttpResponse<R>> {
     const backendUrl = await this.environment.getVariable('BACKEND_URL');
-    return this.http.request(
+    return this.http.request<R>(
       method,
       `${backendUrl}${uri}`,
       {
