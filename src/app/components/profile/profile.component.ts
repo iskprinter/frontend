@@ -2,6 +2,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { Character } from 'src/app/entities/Character';
+import { CharacterService } from 'src/app/services/character/character.service';
 
 @Component({
   selector: 'app-profile',
@@ -15,13 +16,13 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     public authenticatorService: AuthenticatorService,
+    public characterService: CharacterService,
   ) { }
 
   async ngOnInit(): Promise<void> {
     if (this.authenticatorService.isLoggedIn()) {
-      
-      this.character = new Character(this.authenticatorService);
-      await this.character.getId();
+
+      this.character = await this.characterService.getCharacter();
       await Promise.all([
         this.character.getLocation(),
         this.character.getPortrait(),
