@@ -6,7 +6,7 @@ import { AuthenticatorService } from 'src/app/services/authenticator/authenticat
 @Component({
   selector: 'app-code-receiver',
   templateUrl: './code-receiver.component.html',
-  styleUrls: ['./code-receiver.component.css']
+  styleUrls: ['./code-receiver.component.scss']
 })
 export class CodeReceiverComponent implements OnInit {
 

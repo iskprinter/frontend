@@ -12,22 +12,23 @@ module.exports = function (config) {
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },
     colors: true,
-    coverageIstanbulReporter: {
-      // Combines coverage information from multiple browsers into one report rather than outputting a report
-      // for each browser.
-      combineBrowserReports: true,
+    coverageReporter: {
       // base output directory. If you include %browser% in the path it will be replaced with the karma browser name
       dir: path.join(__dirname, 'coverage'),
+      subdir: '.',
       // reports can be any that are listed here: https://github.com/istanbuljs/istanbuljs/tree/73c25ce79f91010d1ff073aa6ff3fd01114f90db/packages/istanbul-reports/lib
-      reports: [
-        'cobertura',
-        'text',
-        'html'
+      instrumenterOptions: {
+        istanbul: { noCompact: true }
+      },
+      reporters: [
+        { type: 'cobertura' },
+        { type: 'text' },
+        { type: 'html' }
       ],
       // if using webpack and pre-loaders, work around webpack breaking the source path
-      fixWebpackSourcePaths: true,
+      // fixWebpackSourcePaths: true,
       // Omit files with no statements, no functions and no branches covered from the report
-      skipFilesWithNoCoverage: true,
+      // skipFilesWithNoCoverage: true,
       // // enforce percentage thresholds
       // // anything under these percentages will cause karma to fail with an exit code of 1 if not running in watch mode
       // thresholds: {
@@ -53,12 +54,12 @@ module.exports = function (config) {
       //   }
       // },
       // output config used by istanbul for debugging
-      verbose: true
+      // verbose: true
     },
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
-        flags: [ '--no-sandbox' ]
+        flags: ['--no-sandbox']
       }
     },
     frameworks: [
@@ -67,14 +68,16 @@ module.exports = function (config) {
     ],
     logLevel: config.LOG_INFO,
     plugins: [
-      'karma-jasmine',
+      '@angular-devkit/build-angular/plugins/karma',
       'karma-chrome-launcher',
+      'karma-coverage',
       'karma-jasmine-html-reporter',
-      'karma-coverage-istanbul-reporter',
-      '@angular-devkit/build-angular/plugins/karma'
+      'karma-jasmine',
     ],
     port: 9876,
-    reporters: [ 'coverage-istanbul', 'progress' ],
+    reporters: [
+      'progress'
+    ],
     restartOnFileChange: true,
     singleRun: true
   });

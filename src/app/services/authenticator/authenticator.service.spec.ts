@@ -9,7 +9,7 @@ import { HttpTester, HttpTestSettings } from 'src/app/test/HttpTester';
 import { MockLocalStorageService } from 'src/app/test/MockLocalStorageService';
 import { MockEnvironmentService } from 'src/app/test/MockEnvironmentService';
 import { Router } from '@angular/router';
-import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpParams, HttpResponse } from '@angular/common/http';
 import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 describe('AuthenticatorService', () => {

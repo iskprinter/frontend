@@ -21,7 +21,7 @@ class Region {
 @Component({
   selector: 'app-intrastation-deals',
   templateUrl: './intrastation-deals.component.html',
-  styleUrls: ['./intrastation-deals.component.css']
+  styleUrls: ['./intrastation-deals.component.scss']
 })
 export class IntrastationDealsComponent implements OnInit {
 

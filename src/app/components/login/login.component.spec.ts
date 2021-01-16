@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { LayoutModule } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -18,9 +18,9 @@ describe('LoginComponent', () => {
 
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
     fetchLoginUrl: () => Promise.resolve('loginUrl')
-   };
+  };
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [LoginComponent],
       imports: [

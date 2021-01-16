@@ -41,7 +41,7 @@ export class HttpTester {
       requests: []
     };
 
-    let done: boolean = false;
+    let done = false;
 
     // Start the server listening for requests
     const server = (async () => {
