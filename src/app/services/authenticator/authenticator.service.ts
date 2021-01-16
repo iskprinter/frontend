@@ -85,14 +85,14 @@ export class AuthenticatorService implements AuthenticatorInterface {
     return accessToken;
   }
 
-  async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
+  async requestWithAuth<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>> {
 
     if (!this.isLoggedIn()) {
       this.logOut();
       throw new NoValidCredentialsError();
     }
 
-    const doRequest = async () => this.http.request(
+    const doRequest = async () => this.http.request<R>(
       method,
       url,
       {

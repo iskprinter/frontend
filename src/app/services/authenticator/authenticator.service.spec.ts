@@ -275,7 +275,7 @@ describe('AuthenticatorService', () => {
       mockLocalStorageService.setItem('accessToken', priorAccessToken);
       responseBodyOracle = { data: 'some-fake-data' };
       httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
+        requestFunction: () => service.requestWithAuth<any>(
           requestMethodOracle,
           requestUrlOracle,
           {
@@ -382,7 +382,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
+        requestFunction: () => service.requestWithAuth<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -419,7 +419,7 @@ describe('AuthenticatorService', () => {
       // Arrange
       const logOutSpy = spyOn(service, 'logOut');
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
+        requestFunction: () => service.requestWithAuth<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -456,7 +456,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
+        requestFunction: () => service.requestWithAuth<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -485,7 +485,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
+        requestFunction: () => service.requestWithAuth<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -524,7 +524,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth(
+        requestFunction: () => service.requestWithAuth<any>(
           requestMethodOracle,
           requestUrlOracle
         ),

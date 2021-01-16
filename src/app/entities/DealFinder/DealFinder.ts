@@ -116,12 +116,12 @@ export class DealFinder {
         // Fetch fresh data
         let analyzedHistory;
         try {
-          const response = await this.authenticatorService.requestWithAuth(
+          const response = await this.authenticatorService.requestWithAuth<any>(
             'get',
             `https://esi.evetech.net/latest/markets/${regionId}/history`,
             { params: { type_id: typeId } }
           );
-          const history = response.body;
+          const history: any = response.body;
           analyzedHistory = this.analyzeHistory(history);
         } catch (err) {
           if (err.status === 404) {
@@ -314,7 +314,7 @@ export class DealFinder {
     private async getCurrentPrices(structureId: number): Promise<{ [key: number]: any }> {
       console.log('Getting current prices...');
 
-      const response = await this.authenticatorService.requestWithAuth(
+      const response = await this.authenticatorService.requestWithAuth<any>(
         'get',
         `https://esi.evetech.net/latest/markets/structures/${structureId}`,
       );
@@ -327,12 +327,12 @@ export class DealFinder {
       const currentPrices = await pages
         .map(async (pageNumber: number) => {
           let response;
-          response = await this.authenticatorService.requestWithAuth(
+          response = await this.authenticatorService.requestWithAuth<EveOrder[]>(
             'get',
             `https://esi.evetech.net/latest/markets/structures/${structureId}`,
             { params: { page: pageNumber } }
           );
-          const orders = response.body as EveOrder[];
+          const orders = response.body;
           return orders;
         })
         .map(async (page: Promise<EveOrder[]>) => {
@@ -466,11 +466,11 @@ export class DealFinder {
 
     private async getMarketOrdersInStructure(structureId: number): Promise<EveOrder[]> {
 
-      const response = await this.authenticatorService.requestWithAuth(
+      const response = await this.authenticatorService.requestWithAuth<EveOrder[]>(
         'get',
         `https://esi.evetech.net/latest/markets/structures/${structureId}`,
       );
-      const orders = (<EveOrder[]>response.body).map((order) => ({
+      const orders = response.body.map((order) => ({
         ...order,
         issued: new Date(order.issued)
       }));
@@ -478,7 +478,7 @@ export class DealFinder {
 
     }
 
-    refreshToken() {
+    refreshToken(): Promise<void> {
       return new Promise((resolve, reject) => {
 
         let char_id = this.getIdOfActiveCharacter();
@@ -509,7 +509,7 @@ export class DealFinder {
     }
 
     // Retrieve the character's id, which is used for all other functions.
-    getCharId() {
+    getCharId(): Promise<void> {
       this.consoleAndStatus('Retrieving character id...');
 
       return new Promise((resolve, reject) => {
@@ -552,7 +552,7 @@ export class DealFinder {
     }
 
     // Get the current location of the character.
-    getCurrentLocation(characterId) {
+    getCurrentLocation(characterId): Promise<void> {
       return new Promise((resolve, reject) => {
         this.consoleAndStatus('Getting location info...');
 
@@ -619,7 +619,7 @@ export class DealFinder {
       });
     }
 
-    getReprocessedValues() {
+    getReprocessedValues(): Promise<void> {
       return new Promise((resolve, reject) => {
         this.consoleAndStatus('Downloading reprocessing data...');
         let options = {
@@ -639,7 +639,7 @@ export class DealFinder {
       });
     }
 
-    buildItemList() {
+    buildItemList(): Promise<void> {
       if (dataIsFresh) return Promise.resolve();
 
       return new Promise((resolve, reject) => {
@@ -682,7 +682,7 @@ export class DealFinder {
       });
     }
 
-    removeAlreadyTrading() {
+    removeAlreadyTrading(): Promise<void> {
       this.consoleAndStatus('Omitting items already being traded...');
       return new Promise((resolve, reject) => {
         let id;
@@ -696,7 +696,7 @@ export class DealFinder {
       });
     }
 
-    removeExpiredItems() {
+    removeExpiredItems(): Promise<void> {
       return new Promise((resolve, reject) => {
         for (let typeId in itemData) {
           if (typeNames[typeId].toLowerCase().includes('expired') && itemData[typeId]) {
@@ -709,7 +709,7 @@ export class DealFinder {
     }
 
     // Save the downloaded data.
-    saveAndOverwrite() {
+    saveAndOverwrite(): Promise<void> {
       return new Promise((resolve, reject) => {
 
         if (dataIsFresh) {
@@ -726,7 +726,7 @@ export class DealFinder {
     }
 
     // Print the results.
-    printResults() {
+    printResults(): Promise<void> {
       return new Promise((resolve, reject) => {
 
         console.log(this.suggestedDeals);
@@ -773,7 +773,7 @@ export class DealFinder {
       });
     }
 
-    loadTypeNames() {
+    loadTypeNames(): Promise<void> {
       return new Promise((resolve, reject) => {
         let typeNamesString = fakeLocalStorage.getItem('typeNames');
         if (typeNamesString == null || typeNamesString == 'undefined') {
@@ -788,7 +788,7 @@ export class DealFinder {
     // ---- Beginning of Standard Eve API Requests ---- //
 
     // Use character id to get character stats.
-    getCharStats(characterId) {
+    getCharStats(characterId): Promise<void> {
       if (dataIsFresh) return Promise.resolve();
 
       return new Promise(function (resolve, reject) {
@@ -839,7 +839,7 @@ export class DealFinder {
     }
 
     // Use character id to get character transactions.
-    getCharTransactions(characterId) {
+    getCharTransactions(characterId): Promise<void> {
       if (dataIsFresh) return Promise.resolve();
 
       return new Promise(function (resolve, reject) {
@@ -872,7 +872,7 @@ export class DealFinder {
       });
     }
 
-    readSkills() {
+    readSkills(): Promise<void> {
       //if (dataIsFresh) {return Promise.resolve();}
 
       this.consoleAndStatus('Calculating, taxes, fees, and available orders...');
@@ -916,7 +916,7 @@ export class DealFinder {
       });
     }
 
-    fillDataGaps() {
+    fillDataGaps(): Promise<void> {
       return new Promise((resolve, reject) => {
         for (let typeId in itemData) {
           if (!itemData[typeId].maxBuy) itemData[typeId].maxBuy = 0;
@@ -932,7 +932,7 @@ export class DealFinder {
       });
     }
 
-    calcIskToInvest() {
+    calcIskToInvest(): Promise<void> {
       return new Promise((resolve, reject) => {
         console.log('Calculating investable ISK...');
 
