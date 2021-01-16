@@ -1,4 +1,3 @@
-
 import { DealFinder } from './DealFinder';
 import { HttpResponse } from '@angular/common/http';
 
