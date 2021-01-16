@@ -26,7 +26,7 @@ describe('AppComponent', () => {
       providers: [
         {
           provide: AuthenticatorService,
-          useValue: jasmine.createSpyObj('AuthenticatorService', ['requestWithAuth'])
+          useValue: jasmine.createSpyObj('AuthenticatorService', ['eveRequest'])
         }
       ]
     }).compileComponents();

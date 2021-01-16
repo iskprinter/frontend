@@ -85,7 +85,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
     return accessToken;
   }
 
-  async requestWithAuth<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>> {
+  async eveRequest<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>> {
 
     if (!this.isLoggedIn()) {
       this.logOut();

@@ -116,7 +116,7 @@ export class DealFinder {
         // Fetch fresh data
         let analyzedHistory;
         try {
-          const response = await this.authenticatorService.requestWithAuth<any>(
+          const response = await this.authenticatorService.eveRequest<any>(
             'get',
             `https://esi.evetech.net/latest/markets/${regionId}/history`,
             { params: { type_id: typeId } }
@@ -314,7 +314,7 @@ export class DealFinder {
     private async getCurrentPrices(structureId: number): Promise<{ [key: number]: any }> {
       console.log('Getting current prices...');
 
-      const response = await this.authenticatorService.requestWithAuth<any>(
+      const response = await this.authenticatorService.eveRequest<any>(
         'get',
         `https://esi.evetech.net/latest/markets/structures/${structureId}`,
       );
@@ -327,7 +327,7 @@ export class DealFinder {
       const currentPrices = await pages
         .map(async (pageNumber: number) => {
           let response;
-          response = await this.authenticatorService.requestWithAuth<EveOrder[]>(
+          response = await this.authenticatorService.eveRequest<EveOrder[]>(
             'get',
             `https://esi.evetech.net/latest/markets/structures/${structureId}`,
             { params: { page: pageNumber } }
@@ -466,7 +466,7 @@ export class DealFinder {
 
     private async getMarketOrdersInStructure(structureId: number): Promise<EveOrder[]> {
 
-      const response = await this.authenticatorService.requestWithAuth<EveOrder[]>(
+      const response = await this.authenticatorService.eveRequest<EveOrder[]>(
         'get',
         `https://esi.evetech.net/latest/markets/structures/${structureId}`,
       );

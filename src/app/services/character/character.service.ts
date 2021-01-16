@@ -21,7 +21,7 @@ export class CharacterService {
       IntellectualProperty: string;
     };
 
-    const response = await this.authenticatorService.requestWithAuth<CharacterDataBasic>(
+    const response = await this.authenticatorService.eveRequest<CharacterDataBasic>(
       'get',
       'https://login.eveonline.com/oauth/verify'
     );

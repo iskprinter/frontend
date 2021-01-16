@@ -275,7 +275,7 @@ describe('AuthenticatorService', () => {
       mockLocalStorageService.setItem('accessToken', priorAccessToken);
       responseBodyOracle = { data: 'some-fake-data' };
       httpTestSettings = {
-        requestFunction: () => service.requestWithAuth<any>(
+        requestFunction: () => service.eveRequest<any>(
           requestMethodOracle,
           requestUrlOracle,
           {
@@ -350,7 +350,7 @@ describe('AuthenticatorService', () => {
 
     });
 
-    it('should throw an error from requestWithAuth if no access token is present', async () => {
+    it('should throw an error from eveRequest if no access token is present', async () => {
 
       // Arrange
       mockLocalStorageService.clear();
@@ -363,7 +363,7 @@ describe('AuthenticatorService', () => {
 
     });
 
-    it('should log out during requestWithAuth if no access token is present', async () => {
+    it('should log out during eveRequest if no access token is present', async () => {
 
       // Arrange
       mockLocalStorageService.clear();
@@ -378,11 +378,11 @@ describe('AuthenticatorService', () => {
 
     });
 
-    it('should throw an error from requestWithAuth if access token is present but invalid', async () => {
+    it('should throw an error from eveRequest if access token is present but invalid', async () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth<any>(
+        requestFunction: () => service.eveRequest<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -414,12 +414,12 @@ describe('AuthenticatorService', () => {
 
     });
 
-    it('should log out during requestWithAuth if access token is present but invalid', async () => {
+    it('should log out during eveRequest if access token is present but invalid', async () => {
 
       // Arrange
       const logOutSpy = spyOn(service, 'logOut');
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth<any>(
+        requestFunction: () => service.eveRequest<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -456,7 +456,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth<any>(
+        requestFunction: () => service.eveRequest<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -485,7 +485,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth<any>(
+        requestFunction: () => service.eveRequest<any>(
           requestMethodOracle,
           requestUrlOracle
         ),
@@ -524,7 +524,7 @@ describe('AuthenticatorService', () => {
 
       // Arrange
       const httpTestSettings = {
-        requestFunction: () => service.requestWithAuth<any>(
+        requestFunction: () => service.eveRequest<any>(
           requestMethodOracle,
           requestUrlOracle
         ),

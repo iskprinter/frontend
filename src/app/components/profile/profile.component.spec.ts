@@ -12,7 +12,7 @@ describe('ProfileComponent', () => {
   let fixture: ComponentFixture<ProfileComponent>;
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
     isLoggedIn: () => true,
-    requestWithAuth: <R>(method: string, url: string, options?: any) => {
+    eveRequest: <R>(method: string, url: string, options?: any) => {
       return new Promise<HttpResponse<R>>((resolve: (value?: HttpResponse<R>) => void, reject: (reason?: any) => void) => { });
     }
   };

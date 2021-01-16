@@ -31,28 +31,28 @@ export class Character {
   async getLocation(): Promise<Character> {
 
     // Get basic location data, including solar system ID
-    const characterLocationResponse = await this.authenticatorService.requestWithAuth<any>(
+    const characterLocationResponse = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/characters/${this.id}/location/`
     );
     const locationData: any = characterLocationResponse.body;
 
     // Get solar system name and parent constellation ID
-    const solarSystemResponse = await this.authenticatorService.requestWithAuth<any>(
+    const solarSystemResponse = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/universe/systems/${locationData.solar_system_id}`
     );
     const solarSystemData: any = solarSystemResponse.body;
 
     // Get constellation name and parent region ID
-    const constellationResponse = await this.authenticatorService.requestWithAuth<any>(
+    const constellationResponse = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/universe/constellations/${solarSystemData.constellation_id}`
     );
     const constellationData: any = constellationResponse.body;
 
     // Get region name
-    const regionResponse = await this.authenticatorService.requestWithAuth<any>(
+    const regionResponse = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/universe/regions/${constellationData.region_id}`
     );
@@ -74,7 +74,7 @@ export class Character {
       return this;
     }
 
-    const structureInfoResponse = await this.authenticatorService.requestWithAuth<any>(
+    const structureInfoResponse = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/universe/structures/${this.location.structureId}`
     );
@@ -84,7 +84,7 @@ export class Character {
   }
 
   async getOrders(): Promise<Character> {
-    const response = await this.authenticatorService.requestWithAuth<any>(
+    const response = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/characters/${this.id}/orders/`
     );
@@ -98,7 +98,7 @@ export class Character {
   }
 
   async getPortrait(): Promise<Character> {
-    const response = await this.authenticatorService.requestWithAuth<any>(
+    const response = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/characters/${this.id}/portrait/`
     );
@@ -107,7 +107,7 @@ export class Character {
   }
 
   async getSkills(): Promise<Character> {
-    const response = await this.authenticatorService.requestWithAuth<any>(
+    const response = await this.authenticatorService.eveRequest<any>(
       'get',
       `https://esi.evetech.net/latest/characters/${this.id}/skills/`
     );
@@ -120,7 +120,7 @@ export class Character {
   }
 
   async getWalletBalance(): Promise<Character> {
-    const response = await this.authenticatorService.requestWithAuth<number>(
+    const response = await this.authenticatorService.eveRequest<number>(
       'get',
       `https://esi.evetech.net/latest/characters/${this.id}/wallet/`
     );
