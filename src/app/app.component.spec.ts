@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
+import { AuthenticatorService } from './services/authenticator/authenticator.service';
 
 @Component({
   selector: 'app-nav',
@@ -10,6 +11,9 @@ import { AppComponent } from './app.component';
 class MockNavComponent { }
 
 describe('AppComponent', () => {
+
+  let mockAuthenticatorService: jasmine.SpyObj<AuthenticatorService>;
+
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
@@ -19,7 +23,16 @@ describe('AppComponent', () => {
         AppComponent,
         MockNavComponent
       ],
+      providers: [
+        {
+          provide: AuthenticatorService,
+          useValue: jasmine.createSpyObj('AuthenticatorService', ['requestWithAuth'])
+        }
+      ]
     }).compileComponents();
+
+    mockAuthenticatorService = TestBed.inject(AuthenticatorService) as jasmine.SpyObj<AuthenticatorService>;
+
   }));
 
   it('should create the app', () => {

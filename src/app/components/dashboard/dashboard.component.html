@@ -1,12 +1,2 @@
-<ng-container
-    *ngIf="this.authenticatorService.isLoggedIn(); then isLoggedIn; else isLoggedOut">
-</ng-container>
-
-<ng-template #isLoggedOut>
-    <app-login></app-login>
-</ng-template>
-
-<ng-template #isLoggedIn>
-    <app-profile (characterUpdate)="setCharacter($event)"></app-profile>
-    <app-intrastation-deals [character]="character"></app-intrastation-deals>
-</ng-template>
+<app-profile (characterUpdate)="setCharacter($event)"></app-profile>
+<app-intrastation-deals [character]="character"></app-intrastation-deals>
