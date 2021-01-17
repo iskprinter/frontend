@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Character, CharacterLocation } from 'src/app/entities/Character';
+import { Order } from 'src/app/entities/Order';
 import { AuthenticatorService } from '../authenticator/authenticator.service';
 
 @Injectable({ providedIn: 'root' })
@@ -9,7 +10,7 @@ export class CharacterService {
     private authenticatorService: AuthenticatorService
   ) { }
 
-  async getCharacter(): Promise<Character> {
+  async getCharacterFromToken(): Promise<Character> {
 
     type BasicCharacterDataResponse = {
       CharacterID: number;
@@ -31,6 +32,7 @@ export class CharacterService {
     );
     character.id = characterData.CharacterID;
     character.name = characterData.CharacterName;
+
     return character;
 
   }
@@ -170,6 +172,36 @@ export class CharacterService {
       structureName: structureData ? structureData.name : undefined
     };
 
+  }
+
+  async getOrdersOfCharacter(character: Character): Promise<Order[]> {
+    type CharacterOrdersResponse = {
+      duration: number;
+      escrow: number;
+      is_buy_order: boolean;
+      is_corporation: boolean;
+      issued: string;
+      location_id: number;
+      min_volume: number;
+      order_id: number;
+      price: number;
+      range: string;
+      region_id: number;
+      type_id: number;
+      volume_remain: number;
+      volume_total: number;
+    }[];
+    const response = await this.authenticatorService.eveRequest<CharacterOrdersResponse>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/orders/`
+    );
+    const orderData = response.body;
+    const orders = orderData.map((order) => ({
+      isBuyOrder: order.is_buy_order,
+      locationId: order.location_id,
+      typeId: order.type_id
+    }));
+    return orders;
   }
 
 }
