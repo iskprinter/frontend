@@ -134,6 +134,7 @@ export class DealFinder {
           };
         } else {
           console.log('Unhandled error:');
+          console.error(err);
           throw err;
         }
       }
