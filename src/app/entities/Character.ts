@@ -31,20 +31,6 @@ export class Character {
     private authenticatorService: AuthenticatorService
   ) { };
 
-  async getOrders(): Promise<Character> {
-    const response = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/characters/${this.id}/orders/`
-    );
-    const orders: any[] = response.body;
-    this.orders = orders.map((order) => ({
-      isBuyOrder: order.is_buy_order,
-      locationId: order.location_id,
-      typeId: order.type_id
-    }));
-    return this;
-  }
-
   async getPortrait(): Promise<Character> {
     const response = await this.authenticatorService.eveRequest<any>(
       'get',

@@ -22,7 +22,7 @@ export class ProfileComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     if (this.authenticatorService.isLoggedIn()) {
 
-      this.character = await this.characterService.getCharacter();
+      this.character = await this.characterService.getCharacterFromToken();
       const [
         characterLocation,
         characterPortrait,

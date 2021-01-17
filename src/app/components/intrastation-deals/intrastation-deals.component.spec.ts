@@ -5,6 +5,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
+import { CharacterService } from 'src/app/services/character/character.service';
 
 import { IntrastationDealsComponent } from './intrastation-deals.component';
 
@@ -15,19 +16,33 @@ describe('IntrastationDealsComponent', () => {
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
     isLoggedIn: () => true,
   };
+  let spyCharacterService;
 
   beforeEach(waitForAsync(() => {
+    
     TestBed.configureTestingModule({
-      declarations: [ IntrastationDealsComponent ],
+      declarations: [IntrastationDealsComponent],
       imports: [
         MatCardModule,
         MatPaginatorModule,
         MatProgressSpinnerModule,
         MatTableModule
       ],
-      providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]
+      providers: [
+        {
+          provide: AuthenticatorService,
+          useValue: authenticatorServiceStub
+        },
+        {
+          provide: CharacterService,
+          useValue: jasmine.createSpyObj('CharacterService', ['getOrdersOfCharacter'])
+        }
+      ]
     })
       .compileComponents();
+
+    spyCharacterService = TestBed.inject(CharacterService);
+
   }));
 
   beforeEach(() => {
