@@ -9,6 +9,7 @@ export type CharacterLocation = {
   regionId: number;
   regionName: string,
   stationId?: number;
+  stationName?: string;
   structureId?: number;
   structureName?: string;
 }

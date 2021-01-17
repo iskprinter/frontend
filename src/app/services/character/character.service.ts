@@ -40,8 +40,8 @@ export class CharacterService {
     // Get basic location data, including solar system ID
     type CharacterLocationResponse = {
       solar_system_id: number;
-      station_id: number;
-      structure_id: number;
+      station_id?: number;
+      structure_id?: number;
     };
     const characterLocationResponse = await this.authenticatorService.eveRequest<CharacterLocationResponse>(
       'get',
@@ -129,6 +129,34 @@ export class CharacterService {
       structureData = structureInfoResponse.body;
     }
 
+    // Get station name if applicable
+    let stationData;
+    if (characterLocationData.station_id) {
+      type StationDataResponse = {
+        max_dockable_ship_volume: number;
+        name: string;
+        office_rental_cost: number;
+        owner: number;
+        position: {
+          x: number,
+          y: number,
+          z: number
+        };
+        race_id: number;
+        reprocessing_efficiency: number;
+        reprocessing_stations_take: number;
+        services: string[];
+        station_id: number;
+        system_id: number;
+        type_id: number;
+      };
+      const stationDataResponse = await this.authenticatorService.eveRequest<StationDataResponse>(
+        'get',
+        `https://esi.evetech.net/latest/universe/stations/${characterLocationData.station_id}`
+      );
+      stationData = stationDataResponse.body;
+    }
+
     return {
       solarSystemId: characterLocationData.solar_system_id,
       solarSystemName: solarSystemData.name,
@@ -137,6 +165,7 @@ export class CharacterService {
       regionId: constellationData.region_id,
       regionName: regionData.name,
       stationId: characterLocationData.station_id,
+      stationName: stationData ? stationData.name : undefined,
       structureId: characterLocationData.structure_id,
       structureName: structureData ? structureData.name : undefined
     };
