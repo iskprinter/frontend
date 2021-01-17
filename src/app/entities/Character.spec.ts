@@ -28,7 +28,7 @@ describe('Character', () => {
     httpTester = new HttpTester(httpTestingController);
     mockAuthenticatorService = TestBed.inject(AuthenticatorService);
     character = new Character(mockAuthenticatorService);
-        
+
   });
 
   afterEach(() => {

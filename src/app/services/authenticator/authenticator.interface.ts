@@ -1,6 +1,6 @@
 import { HttpResponse } from '@angular/common/http';
 
 export interface AuthenticatorInterface {
-    requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>>;
-    backendRequest(method: string, url: string, options?: any): Promise<HttpResponse<Object>>;
+    eveRequest<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>>;
+    backendRequest<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>>;
 }

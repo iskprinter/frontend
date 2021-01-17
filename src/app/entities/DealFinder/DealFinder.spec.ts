@@ -1,4 +1,3 @@
-
 import { DealFinder } from './DealFinder';
 import { HttpResponse } from '@angular/common/http';
 
@@ -9,11 +8,11 @@ import happyVolumeHistory from './happyVolumeHistoryTypeId2267.json';
 describe('DealFinder', () => {
 
   let stubAuthenticatorService: AuthenticatorInterface = {
-    requestWithAuth: (method: string, url: string, options?: any) =>  {
-      return new Promise<HttpResponse<Object>>((resolve: (value?: HttpResponse<Object>) => void, reject: (reason?: any) => void) => {});
+    eveRequest: <R>(method: string, url: string, options?: any) =>  {
+      return new Promise<HttpResponse<R>>((resolve: (value?: HttpResponse<R>) => void, reject: (reason?: any) => void) => {});
     },
-    backendRequest: (method: string, url: string, options?: any) =>  {
-      return new Promise<HttpResponse<Object>>((resolve: (value?: HttpResponse<Object>) => void, reject: (reason?: any) => void) => {});
+    backendRequest: <R>(method: string, url: string, options?: any) =>  {
+      return new Promise<HttpResponse<R>>((resolve: (value?: HttpResponse<R>) => void, reject: (reason?: any) => void) => {});
     }
   };
 

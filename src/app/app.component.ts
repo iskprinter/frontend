@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-
+import { AuthenticatorService } from './services/authenticator/authenticator.service';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +10,10 @@ import { Title } from '@angular/platform-browser';
 export class AppComponent {
   title = 'ISK Printer';
 
-  public constructor(private titleService: Title) {
+  public constructor(
+    private titleService: Title,
+    public authenticatorService: AuthenticatorService
+  ) {
     this.titleService.setTitle(this.title);
   }
 

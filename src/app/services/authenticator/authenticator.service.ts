@@ -85,14 +85,14 @@ export class AuthenticatorService implements AuthenticatorInterface {
     return accessToken;
   }
 
-  async requestWithAuth(method: string, url: string, options?: any): Promise<HttpResponse<Object>> {
+  async eveRequest<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>> {
 
     if (!this.isLoggedIn()) {
       this.logOut();
       throw new NoValidCredentialsError();
     }
 
-    const doRequest = async () => this.http.request(
+    const doRequest = async () => this.http.request<R>(
       method,
       url,
       {
@@ -130,9 +130,9 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   }
 
-  async backendRequest(method: string, uri: string, options?: any): Promise<HttpResponse<Object>> {
+  async backendRequest<R>(method: string, uri: string, options?: any): Promise<HttpResponse<R>> {
     const backendUrl = await this.environment.getVariable('BACKEND_URL');
-    return this.http.request(
+    return this.http.request<R>(
       method,
       `${backendUrl}${uri}`,
       {
