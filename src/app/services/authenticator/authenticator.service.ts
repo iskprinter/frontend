@@ -1,6 +1,6 @@
 import { HttpClient, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
@@ -8,7 +8,7 @@ import { LocalStorageService } from 'src/app/services/local-storage/local-storag
 import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 @Injectable({ providedIn: 'root' })
-export class AuthenticatorService implements AuthenticatorInterface {
+export class AuthenticatorService implements AuthenticatorInterface, CanActivate {
 
   private retryCount = 3;
 

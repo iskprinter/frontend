@@ -7,9 +7,8 @@ import { PageNotFoundComponent } from './components/page-not-found/page-not-foun
 import { AuthenticatorService } from './services/authenticator/authenticator.service';
 
 const routes: Routes = [
-  { path: '', component: DashboardComponent },
+  { path: '', component: DashboardComponent, canActivate: [AuthenticatorService] },
   { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthenticatorService] },
   { path: 'code-receiver', component: CodeReceiverComponent },
   { path: '**', component: PageNotFoundComponent },
 ];
