@@ -25,12 +25,10 @@ class Region {
   styleUrls: ['./intrastation-deals.component.scss']
 })
 export class IntrastationDealsComponent implements OnInit {
-
-  character: Character;
   
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  private readonly regions: Region[] = regions.sort((region1, region2) => region1.regionName.localeCompare(region2.regionName));
+  readonly regions: Region[] = regions.sort((region1, region2) => region1.regionName.localeCompare(region2.regionName));
 
   deals: MatTableDataSource<Deal>;
   filteredRegions: Observable<Region[]>;
@@ -79,7 +77,8 @@ export class IntrastationDealsComponent implements OnInit {
       this.localStorage,
       this.characterService
     );
-    const deals = await dealFinder.findDeals(this.character);
+    const character = await this.characterService.getCharacterFromToken();
+    const deals = await dealFinder.findDealsForCharacter(character);
     this.deals = new MatTableDataSource(deals);
     this.deals.paginator = this.paginator
     console.log('done.');
