@@ -250,7 +250,7 @@ describe('AuthenticatorService', () => {
 
   });
 
-  describe('Eve requests with authentication', () => {
+  describe('eveRequest', () => {
 
     let requestMethodOracle: string;
     let requestUrlOracle: string;
@@ -557,9 +557,65 @@ describe('AuthenticatorService', () => {
 
     });
 
+    it('should be able to try up to 3 times from an absent CORS header', async () => {
+
+      /* Example error:
+      {
+        error: ProgressEvent { isTrusted: true, lengthComputable: false, loaded: 0, total: 0, type: "error", … }
+        headers: zf { normalizedNames: Map(0), lazyUpdate: null, headers: Map(0) }
+        message: "Http failure response for https://esi.evetech.net/latest/markets/10000060/history: 0 Unknown Error"
+        name: "HttpErrorResponse"
+        ok: false
+        status: 0
+        statusText: "Unknown Error"
+        url: "https://esi.evetech.net/latest/markets/10000060/history"
+      }
+      */
+
+      // Arrange
+      const httpTestSettings = {
+        requestFunction: () => service.eveRequest<any>(
+          requestMethodOracle,
+          requestUrlOracle
+        ),
+        responses: [
+          {
+            body: `Http failure response for ${requestUrlOracle}: 0 Unknown Error`,
+            options: {
+              status: 0,
+              statusText: 'Unknown Error'
+            }
+          },
+          {
+            body: `Http failure response for ${requestUrlOracle}: 0 Unknown Error`,
+            options: {
+              status: 0,
+              statusText: 'Unknown Error'
+            }
+          },
+          {
+            body: responseBodyOracle
+          }
+        ]
+      };
+
+      // Act
+      const httpTestResult = await httpTester.test<HttpResponse<object>>(httpTestSettings);
+
+      // Assert
+      expect(httpTestResult.requests[0].url).toBe(requestUrlOracle);
+      expect(httpTestResult.requests[1].url).toBe(requestUrlOracle);
+      expect(httpTestResult.requests[2].url).toBe(requestUrlOracle);
+      await expectAsync(httpTestResult.response())
+        .toBeResolvedTo(jasmine.objectContaining({
+          body: responseBodyOracle
+        }));
+
+    });
+
   });
 
-  describe('Backend requests with authentication', () => {
+  describe('backendRequest', () => {
 
     let requestMethodOracle: string;
     let requestUrlOracle: string;

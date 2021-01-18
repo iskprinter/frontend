@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -9,6 +9,8 @@ import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError'
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface {
+
+  private retryCount = 3;
 
   constructor(
     private http: HttpClient,
@@ -92,20 +94,36 @@ export class AuthenticatorService implements AuthenticatorInterface {
       throw new NoValidCredentialsError();
     }
 
-    const doRequest = async () => this.http.request<R>(
-      method,
-      url,
-      {
-        body: options?.body,
-        headers: new HttpHeaders({
-          ...options?.headers,
-          Authorization: `Bearer ${this._getAccessToken()}`,
-        }),
-        observe: 'response',
-        params: options?.params,
-        responseType: 'json'
+    const doRequest: () => Promise<HttpResponse<R>> = async () => {
+
+      for (let i = 0; i < this.retryCount; i += 1) {
+
+        try {
+          return await this.http.request<R>(
+            method,
+            url,
+            {
+              body: options?.body,
+              headers: new HttpHeaders({
+                ...options?.headers,
+                Authorization: `Bearer ${this._getAccessToken()}`,
+              }),
+              observe: 'response',
+              params: options?.params,
+              responseType: 'json'
+            }
+          ).toPromise();
+        } catch (error) {
+          if (error instanceof HttpErrorResponse && error.status === 0) {
+            // Likely error due to absent CORS header on response. Retry.
+          } else {
+            throw error;
+          }
+        }
+
       }
-    ).toPromise();
+
+    };
 
     try {
       return await doRequest();
