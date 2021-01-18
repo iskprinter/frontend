@@ -27,12 +27,3 @@ Suggests market deals in Eve Online.
     // In the browser console at http://localhost:8080
     window.localStorage.setItem('accessToken', <access-token>);
     ```
-
-## How to build the image
-
-To build the image and push it:
-```
-tag=$(git rev-parse --verify --short HEAD)
-docker build . -t "docker.io/iskprinter/frontend:${tag}"
-docker push "docker.io/iskprinter/frontend:${tag}"
-```

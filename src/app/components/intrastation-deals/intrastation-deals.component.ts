@@ -26,7 +26,8 @@ class Region {
 })
 export class IntrastationDealsComponent implements OnInit {
 
-  @Input() character: Character;
+  character: Character;
+  
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   private readonly regions: Region[] = regions.sort((region1, region2) => region1.regionName.localeCompare(region2.regionName));

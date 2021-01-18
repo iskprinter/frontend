@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Character, CharacterLocation } from 'src/app/entities/Character';
 import { Order } from 'src/app/entities/Order';
+import { Skill } from 'src/app/entities/Skill';
 import { AuthenticatorService } from '../authenticator/authenticator.service';
 
 @Injectable({ providedIn: 'root' })
@@ -27,11 +28,10 @@ export class CharacterService {
       'https://login.eveonline.com/oauth/verify'
     );
     const characterData = response.body;
-    const character = new Character(
-      this.authenticatorService
-    );
-    character.id = characterData.CharacterID;
-    character.name = characterData.CharacterName;
+    const character: Character = {
+      id: characterData.CharacterID,
+      name:  characterData.CharacterName,
+    };
 
     return character;
 
@@ -202,6 +202,56 @@ export class CharacterService {
       typeId: order.type_id
     }));
     return orders;
+  }
+
+  async getPortraitOfCharacter(character: Character): Promise<string> {
+    type CharacterPortraitResponse = {
+      px128x128: string;
+      px256x256: string;
+      px512x512: string;
+      px64x64: string;
+    };
+    const response = await this.authenticatorService.eveRequest<CharacterPortraitResponse>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/portrait/`
+    );
+    const portraitData = response.body;
+    const portrait = portraitData.px128x128;
+    return portrait;
+  }
+
+  async getSkillsOfCharacter(character: Character): Promise<Skill[]> {
+
+    type CharacterSkillResponse = {
+      skills: {
+        active_skill_level: number;
+        skill_id: number;
+        skillpoints_in_skill: number;
+        trained_skill_level: number;
+      }[];
+      total_sp: number;
+      unallocated_sp: number;
+    };
+    const response = await this.authenticatorService.eveRequest<CharacterSkillResponse>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/skills/`
+    );
+    const skillData = response.body.skills;
+    const skills = skillData.map((skill) => ({
+      skillId: skill.skill_id,
+      activeSkillLevel: skill.active_skill_level,
+    }));
+    return skills;
+
+  }
+
+  async getWalletBalanceOfCharacter(character: Character): Promise<number> {
+    const response = await this.authenticatorService.eveRequest<number>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/wallet/`
+    );
+    const walletBalance = response.body;
+    return walletBalance;
   }
 
 }
