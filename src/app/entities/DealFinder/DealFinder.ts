@@ -1,7 +1,7 @@
 
 import { Character } from 'src/app/entities/Character';
 import { Deal } from 'src/app/entities/DealFinder/Deal';
-import { FakeLocalStorage } from './FakeLocalStorage';
+import { FakeLocalStorageService } from './FakeLocalStorage';
 import { LocalStorageInterface } from './LocalStorageInterface';
 import { Type } from 'src/app/entities/Type';
 import { WorkerPool } from 'src/app/entities/WorkerPool';
@@ -23,25 +23,25 @@ interface EveOrder {
 
 export class DealFinder {
 
-  private static readonly BASE_SALES_TAX = 0.05;
+  static readonly BASE_SALES_TAX = 0.05;
   // If there are no sell orders present on the market,
   // is multiplied by the following factor to compute a sell price.
   // The maximum transaction price in the historical data
-  private static readonly HISTORICAL_SELL_FACTOR = 1.05;
-  private static readonly MAX_ORDER_DAYS = 1;
-  private static readonly MIN_BUY_PRICE = 0.01;
+  static readonly HISTORICAL_SELL_FACTOR = 1.05;
+  static readonly MAX_ORDER_DAYS = 1;
+  static readonly MIN_BUY_PRICE = 0.01;
 
-  private static readonly HISTORICAL_DATA_CACHE_DURATION = 5; // days
+  static readonly HISTORICAL_DATA_CACHE_DURATION = 5; // days
 
-  private types: Type[];
-  private historicalData: { [key: number]: any } = {};
+  types: Type[];
+  historicalData: { [key: number]: any } = {};
 
   constructor(
     private authenticatorService: AuthenticatorService,
     private localStorage: LocalStorageInterface,
     private characterService: CharacterService
   ) {
-    this.localStorage = localStorage || new FakeLocalStorage();
+    this.localStorage = localStorage || new FakeLocalStorageService();
   }
 
   async findDeals(character: Character): Promise<Deal[]> {
@@ -79,13 +79,13 @@ export class DealFinder {
 
   }
 
-  private async _getMarketableTypes(): Promise<Type[]> {
+  async _getMarketableTypes(): Promise<Type[]> {
     const typeResponse = await this.authenticatorService.backendRequest('get', '/types');
     const types = typeResponse.body as Type[];
     return types;
   }
 
-  private async _getHistoricalData(regionId: number, typeIds: number[]): Promise<PromiseSettledResult<any>[]> {
+  async _getHistoricalData(regionId: number, typeIds: number[]): Promise<PromiseSettledResult<any>[]> {
     const storedHistoricalDataString = this.localStorage.getItem('historicalData');
     const storedHistoricalData = storedHistoricalDataString ? JSON.parse(storedHistoricalDataString) : {};
 
@@ -142,7 +142,7 @@ export class DealFinder {
 
   }
 
-  private _analyzeHistory(data) {
+  _analyzeHistory(data) {
 
     let maxPrice = 0;
 
@@ -251,7 +251,7 @@ export class DealFinder {
 
   // WARNING: This is a temporary refactor.
   // This function will MUTATE the workingData parameter.
-  private _getBuyFraction(workingData, data, i, minIndex) {
+  _getBuyFraction(workingData, data, i, minIndex) {
     switch (10 * minIndex.j + minIndex.k) {
       case 0:
         // Highest and lowest are both sell.
@@ -283,7 +283,7 @@ export class DealFinder {
 
   // WARNING: This is a temporary refactor.
   // This function will MUTATE the workingData parameter.
-  private _updateCumulativeTotals(workingData, data, i, buyFraction) {
+  _updateCumulativeTotals(workingData, data, i, buyFraction) {
 
     let buyVolume = data[i].volume * buyFraction;
     let sellVolume = data[i].volume - buyVolume;
@@ -302,7 +302,7 @@ export class DealFinder {
   }
 
   // Use structure id to get structure orders.
-  private async _getCurrentPrices(structureId: number): Promise<{ [key: number]: any }> {
+  async _getCurrentPrices(structureId: number): Promise<{ [key: number]: any }> {
     console.log('Getting current prices...');
 
     const response = await this.authenticatorService.eveRequest<any>(
@@ -377,7 +377,7 @@ export class DealFinder {
     return currentPrices;
   }
 
-  private async _computeDeals(
+  async _computeDeals(
     currentPrices: { [key: number]: any },
     historicalData: { [key: number]: any },
     character: Character,
@@ -429,7 +429,7 @@ export class DealFinder {
     return deals;
   }
 
-  private _scaleOrFilterByAffordability(deals: Deal[], walletBalance: number) {
+  _scaleOrFilterByAffordability(deals: Deal[], walletBalance: number) {
     const affordableDeals: Deal[] = [];
     for (const deal of deals) {
       if (deal.volume * deal.buyPrice + deal.fees > walletBalance) {
@@ -458,20 +458,20 @@ export class DealFinder {
   }
 
   // Send to the console and also update the status shown on the page.
-  private consoleAndStatus(content) {
+  _consoleAndStatus(content) {
     if (verbose) {
-      this.status(content);
+      this._status(content);
     }
     console.log(content);
   }
 
   // Update the status shown on the page.
-  private status(content) {
+  _status(content) {
     // no op
   }
 
   // Used to call functions that could return an error due to bad server response.
-  private wrapperForFetch(api, fetchFunctionName, ...fetchArgs) {
+  _wrapperForFetch(api, fetchFunctionName, ...fetchArgs) {
     return new Promise((resolve, reject) => {
       let result;
       api[fetchFunctionName](...fetchArgs, (error, data, response) => {
@@ -481,9 +481,9 @@ export class DealFinder {
     }).then((result: any) => {
       return new Promise((resolve, reject) => {
         if (!result.response || Math.floor(result.response.status / 100) == 5) {
-          this.consoleAndStatus('Encountered server-side 5xx error.\nRetrying in ' + ip.WAITDELAY + ' seconds...');
+          this._consoleAndStatus('Encountered server-side 5xx error.\nRetrying in ' + ip.WAITDELAY + ' seconds...');
           window.setTimeout(() => {
-            resolve(this.wrapperForFetch(api, fetchFunctionName, ...fetchArgs));
+            resolve(this._wrapperForFetch(api, fetchFunctionName, ...fetchArgs));
           }, ip.WAITDELAY * 1000);
         } else if (result.response.status == 404) {
           // Remove this item from the data.
@@ -495,7 +495,7 @@ export class DealFinder {
     });
   }
 
-  private reprocessedValue(feedTypeId) {
+  _reprocessedValue(feedTypeId) {
     return new Promise((resolve, reject) => {
       let reprocessedValue = 0;
       let productPrice;
@@ -516,7 +516,7 @@ export class DealFinder {
       if (ip.reprocessingData[feedTypeId]) {
         reprocessedValue /= ip.reprocessingData[feedTypeId].feedQuantity;
       }
-      return resolve(this.reprocessedValue);
+      return resolve(this._reprocessedValue);
     });
   }
 

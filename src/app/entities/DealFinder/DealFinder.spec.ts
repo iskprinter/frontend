@@ -1,6 +1,6 @@
 import { DealFinder } from './DealFinder';
 
-import { FakeLocalStorage } from './FakeLocalStorage';
+import { FakeLocalStorageService } from './FakeLocalStorage';
 import happyVolumeHistory from './happyVolumeHistoryTypeId2267.json';
 import { TestBed } from '@angular/core/testing';
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
@@ -9,11 +9,11 @@ import { LocalStorageService } from 'src/app/services/local-storage/local-storag
 
 describe('DealFinder', () => {
 
-  let spyAuthenticatorService;
-  let fakeLocalStorageService;
-  let spyCharacterService;
+  let spyAuthenticatorService: jasmine.SpyObj<AuthenticatorService>;
+  let fakeLocalStorageService: FakeLocalStorageService;
+  let spyCharacterService: jasmine.SpyObj<CharacterService>;
 
-  let dealFinder;
+  let dealFinder: DealFinder;
 
   beforeEach(() => {
 
@@ -28,7 +28,7 @@ describe('DealFinder', () => {
         },
         {
           provide: LocalStorageService,
-          useClass: FakeLocalStorage
+          useClass: FakeLocalStorageService
         },
         {
           provide: CharacterService,
@@ -37,9 +37,9 @@ describe('DealFinder', () => {
       ]
     });
 
-    spyAuthenticatorService = TestBed.inject(AuthenticatorService);
-    fakeLocalStorageService = TestBed.inject(LocalStorageService);
-    spyCharacterService = TestBed.inject(CharacterService);
+    spyAuthenticatorService = TestBed.inject(AuthenticatorService) as jasmine.SpyObj<AuthenticatorService>;
+    fakeLocalStorageService = TestBed.inject(LocalStorageService) as any as FakeLocalStorageService;
+    spyCharacterService = TestBed.inject(CharacterService) as jasmine.SpyObj<CharacterService>;
 
     dealFinder = new DealFinder(
       spyAuthenticatorService,
@@ -50,7 +50,7 @@ describe('DealFinder', () => {
   });
 
   it('should properly categorize historical volume', () => {
-    const analyzedHistory = dealFinder.analyzeHistory(happyVolumeHistory);
+    const analyzedHistory = dealFinder._analyzeHistory(happyVolumeHistory);
     expect(dealFinder).toBeTruthy();
   });
 

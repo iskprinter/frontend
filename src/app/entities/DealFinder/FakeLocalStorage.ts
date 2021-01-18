@@ -1,6 +1,6 @@
 import { LocalStorageInterface } from './LocalStorageInterface';
 
-export class FakeLocalStorage implements LocalStorageInterface {
+export class FakeLocalStorageService implements LocalStorageInterface {
 
     data: object = {};
 

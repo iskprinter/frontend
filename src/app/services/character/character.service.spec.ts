@@ -29,7 +29,7 @@ describe('CharacterService', () => {
     service = TestBed.inject(CharacterService);
 
     // Create a default character (some tests will reinstantiate this)
-    const character: Character = {
+    character = {
       id: 95448633,
       name: 'Kronn 8',
     };
