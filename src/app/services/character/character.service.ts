@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Character, CharacterLocation } from 'src/app/entities/Character';
 import { Order } from 'src/app/entities/Order';
+import { Skill } from 'src/app/entities/Skill';
 import { AuthenticatorService } from '../authenticator/authenticator.service';
 
 @Injectable({ providedIn: 'root' })
@@ -218,6 +219,31 @@ export class CharacterService {
     const portraitData = response.body;
     const portrait = portraitData.px128x128;
     return portrait;
+  }
+
+  async getSkillsOfCharacter(character: Character): Promise<Skill[]> {
+
+    type CharacterSkillResponse = {
+      skills: {
+        active_skill_level: number;
+        skill_id: number;
+        skillpoints_in_skill: number;
+        trained_skill_level: number;
+      }[];
+      total_sp: number;
+      unallocated_sp: number;
+    };
+    const response = await this.authenticatorService.eveRequest<CharacterSkillResponse>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/skills/`
+    );
+    const skillData = response.body.skills;
+    const skills = skillData.map((skill) => ({
+      skillId: skill.skill_id,
+      activeSkillLevel: skill.active_skill_level,
+    }));
+    return skills;
+
   }
 
 }

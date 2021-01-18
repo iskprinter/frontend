@@ -31,19 +31,6 @@ export class Character {
     private authenticatorService: AuthenticatorService
   ) { };
 
-  async getSkills(): Promise<Character> {
-    const response = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/characters/${this.id}/skills/`
-    );
-    const skillData: any[] = response.body.skills;
-    this.skills = skillData.map((skill) => ({
-      skillId: skill.skill_id,
-      activeSkillLevel: skill.active_skill_level,
-    }));
-    return this;
-  }
-
   async getWalletBalance(): Promise<Character> {
     const response = await this.authenticatorService.eveRequest<number>(
       'get',
