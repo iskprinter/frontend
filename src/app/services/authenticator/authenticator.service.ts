@@ -1,6 +1,6 @@
 import { HttpClient, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
@@ -51,6 +51,14 @@ export class AuthenticatorService implements AuthenticatorInterface {
   _setAccessToken(accessToken: string): void {
     this.localStorage.setItem('accessToken', accessToken);
   }
+
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    if (this.isLoggedIn()) {
+        return true;
+    }
+    this.router.navigate(['/login']);
+    return false;
+}
 
   isLoggedIn(): boolean {
     return !!this.localStorage.getItem('accessToken');
