@@ -1,12 +1,11 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { map, startWith } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
-import { Character } from 'src/app/entities/Character';
 import { Deal } from 'src/app/entities/DealFinder/Deal';
 import { DealFinder } from 'src/app/entities/DealFinder/DealFinder';
 import { RequestInformerService } from 'src/app/services/request-informer/request-informer.service';
@@ -25,14 +24,14 @@ class Region {
   styleUrls: ['./intrastation-deals.component.scss']
 })
 export class IntrastationDealsComponent implements OnInit {
-  
+
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  readonly regions: Region[] = regions.sort((region1, region2) => region1.regionName.localeCompare(region2.regionName));
+  _regions: Region[] = regions.sort((region1, region2) => region1.regionName.localeCompare(region2.regionName));
 
   deals: MatTableDataSource<Deal>;
   filteredRegions: Observable<Region[]>;
-  regionControl = new FormControl(undefined, Validators.required);
+  regionControl = new FormControl('', Validators.required);
   regionId: number;
 
   displayedDealColumns: string[] = [
@@ -52,22 +51,15 @@ export class IntrastationDealsComponent implements OnInit {
     private characterService: CharacterService,
   ) { }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.filteredRegions = this.regionControl.valueChanges
-      .pipe(
-        startWith(''),
-        map((regionName) => this._filterRegions(regionName))
-      );
+      .pipe(map((regionName) => this._filterRegions(regionName)));
+    this.regionControl.updateValueAndValidity();
   }
 
-  // Used in the view
-  onRegionSelected(event) {
-    this.regionId = event.option.id;
-  }
-
-  private _filterRegions(regionName: string): Region[] {
+  _filterRegions(regionName: string): Region[] {
     const filterValue = regionName.toLowerCase();
-    return this.regions.filter((r) => r.regionName.toLowerCase().includes(filterValue));
+    return this._regions.filter((r) => r.regionName.toLowerCase().includes(filterValue));
   }
 
   async printIsk() {
