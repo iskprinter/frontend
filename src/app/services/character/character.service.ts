@@ -28,11 +28,10 @@ export class CharacterService {
       'https://login.eveonline.com/oauth/verify'
     );
     const characterData = response.body;
-    const character = new Character(
-      this.authenticatorService
-    );
-    character.id = characterData.CharacterID;
-    character.name = characterData.CharacterName;
+    const character: Character = {
+      id: characterData.CharacterID,
+      name:  characterData.CharacterName,
+    };
 
     return character;
 
@@ -244,6 +243,15 @@ export class CharacterService {
     }));
     return skills;
 
+  }
+
+  async getWalletBalanceOfCharacter(character: Character): Promise<number> {
+    const response = await this.authenticatorService.eveRequest<number>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/wallet/`
+    );
+    const walletBalance = response.body;
+    return walletBalance;
   }
 
 }

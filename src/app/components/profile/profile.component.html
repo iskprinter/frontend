@@ -1,5 +1,5 @@
 <mat-card class="form-card" style="display: flex;">
-    <img style="align-self: flex-start;" src="{{character?.portrait}}" />
+    <img style="align-self: flex-start;" src="{{characterPortrait}}" />
     <div style="padding: 0px 16px;">
         <mat-card-title>{{character?.name}}</mat-card-title>            
         <mat-card-content>
@@ -7,25 +7,25 @@
                 ID: {{character?.id}}
             </div>
             <div>
-                Region: {{character?.location?.regionName}}
+                Region: {{characterLocation?.regionName}}
             </div>
             <div>
-                Constellation: {{character?.location?.constellationName}}
+                Constellation: {{characterLocation?.constellationName}}
             </div>
             <div>
-                Solar System: {{character?.location?.solarSystemName}}
+                Solar System: {{characterLocation?.solarSystemName}}
             </div>
-            <div *ngIf="character?.location?.stationId">
-                Station ID: {{character?.location?.stationId || 'None'}}
+            <div *ngIf="characterLocation?.stationId">
+                Station ID: {{characterLocation?.stationId || 'None'}}
             </div>
-            <div *ngIf="character?.location?.structureName">
-                Structure: {{character?.location?.structureName || 'None'}}
+            <div *ngIf="characterLocation?.structureName">
+                Structure: {{characterLocation?.structureName || 'None'}}
             </div>
         </mat-card-content>
     </div>
     <div style="align-self: center;">
         <mat-card-title>
-            Balance: {{character?.walletBalance?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}} ISK
+            Balance: {{characterWalletBalance?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}} ISK
         </mat-card-title>
     </div>
 </mat-card>

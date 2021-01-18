@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
 
-import { Character } from 'src/app/entities/Character';
-
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -9,12 +7,6 @@ import { Character } from 'src/app/entities/Character';
 })
 export class DashboardComponent {
 
-  character: Character;
-
   constructor() { }
-
-  setCharacter(character: Character) {
-    this.character = character;
-  }
 
 }

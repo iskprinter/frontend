@@ -29,9 +29,10 @@ describe('CharacterService', () => {
     service = TestBed.inject(CharacterService);
 
     // Create a default character (some tests will reinstantiate this)
-    character = new Character(mockAuthenticatorService);
-    character.id = 95448633;
-    character.name = 'Kronn 8';
+    const character: Character = {
+      id: 95448633,
+      name: 'Kronn 8',
+    };
 
   });
 
@@ -399,6 +400,28 @@ describe('CharacterService', () => {
           activeSkillLevel: skillData.skills[1].active_skill_level,
         }
       ]);
+
+    });
+
+  });
+
+  describe('getWalletBalanceOfCharacter', () => {
+
+    it('should properly fetch the wallet balance of a character', async () => {
+
+      // Arrange
+      const walletBalance = 873484863.5;
+      mockAuthenticatorService.eveRequest.withArgs(
+        'get',
+        `https://esi.evetech.net/latest/characters/${character.id}/wallet/`
+      )
+        .and.resolveTo(new HttpResponse<any>({ status: 200, body: walletBalance }));
+
+      // Act
+      const characterWalletBalance: number = await service.getWalletBalanceOfCharacter(character);
+
+      // Assert
+      expect(characterWalletBalance).toBe(walletBalance);
 
     });
 

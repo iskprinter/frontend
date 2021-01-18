@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
-import { Character } from 'src/app/entities/Character';
+import { Character, CharacterLocation } from 'src/app/entities/Character';
 import { CharacterService } from 'src/app/services/character/character.service';
 
 @Component({
@@ -12,7 +12,9 @@ import { CharacterService } from 'src/app/services/character/character.service';
 export class ProfileComponent implements OnInit {
 
   character: Character;
-  @Output() characterUpdate = new EventEmitter<Character>();
+  characterPortrait: string;
+  characterLocation: CharacterLocation;
+  characterWalletBalance: number;
 
   constructor(
     public authenticatorService: AuthenticatorService,
@@ -30,12 +32,11 @@ export class ProfileComponent implements OnInit {
       ] = await Promise.allSettled([
         this.characterService.getLocationOfCharacter(this.character),
         this.characterService.getPortraitOfCharacter(this.character),
-        this.character.getWalletBalance()
+        this.characterService.getWalletBalanceOfCharacter(this.character)
       ]);
-      this.character.location = characterLocation.status === 'fulfilled' ? characterLocation.value : undefined;
-      this.character.portrait = characterPortrait.status === 'fulfilled' ? characterPortrait.value : undefined;
-
-      this.characterUpdate.emit(this.character);
+      this.characterLocation = characterLocation.status === 'fulfilled' ? characterLocation.value : undefined;
+      this.characterPortrait = characterPortrait.status === 'fulfilled' ? characterPortrait.value : undefined;
+      this.characterWalletBalance = characterWalletBalance.status === 'fulfilled' ? characterWalletBalance.value : undefined;
     }
   }
 
