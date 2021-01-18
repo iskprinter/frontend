@@ -262,65 +262,97 @@ describe('CharacterService', () => {
 
   });
 
-  it('should properly fetch the location of a character when undocked', async () => {
+  describe('getOrdersOfCharacter', () => {
 
-    // Arrange
-    const orderData = [
-      {
-        "duration": 90,
-        "escrow": 61941160,
-        "is_buy_order": true,
-        "is_corporation": false,
-        "issued": "2020-10-20T02:24:16Z",
-        "c": 1030049082711,
-        "min_volume": 1,
-        "order_id": 5826829163,
-        "price": 86510,
-        "range": "station",
-        "region_id": 10000060,
-        "type_id": 25590,
-        "volume_remain": 716,
-        "volume_total": 1720
-      },
-      {
-        "duration": 90,
-        "escrow": 18009000,
-        "is_buy_order": false,
-        "is_corporation": false,
-        "issued": "2020-10-20T13:34:27Z",
-        "location_id": 1030049082711,
-        "min_volume": 1,
-        "order_id": 5827105254,
-        "price": 2001000,
-        "range": "station",
-        "region_id": 10000060,
-        "type_id": 32340,
-        "volume_remain": 9,
-        "volume_total": 9
-      },
-    ];
-    mockAuthenticatorService.eveRequest.withArgs(
-      'get',
-      `https://esi.evetech.net/latest/characters/${character.id}/orders/`
-    )
-      .and.resolveTo(new HttpResponse<any>({ status: 200, body: orderData }));
+    it('should properly fetch the orders of a character', async () => {
 
-    // Act
-    const characterOrders: Order[] = await service.getOrdersOfCharacter(character);
+      // Arrange
+      const orderData = [
+        {
+          "duration": 90,
+          "escrow": 61941160,
+          "is_buy_order": true,
+          "is_corporation": false,
+          "issued": "2020-10-20T02:24:16Z",
+          "c": 1030049082711,
+          "min_volume": 1,
+          "order_id": 5826829163,
+          "price": 86510,
+          "range": "station",
+          "region_id": 10000060,
+          "type_id": 25590,
+          "volume_remain": 716,
+          "volume_total": 1720
+        },
+        {
+          "duration": 90,
+          "escrow": 18009000,
+          "is_buy_order": false,
+          "is_corporation": false,
+          "issued": "2020-10-20T13:34:27Z",
+          "location_id": 1030049082711,
+          "min_volume": 1,
+          "order_id": 5827105254,
+          "price": 2001000,
+          "range": "station",
+          "region_id": 10000060,
+          "type_id": 32340,
+          "volume_remain": 9,
+          "volume_total": 9
+        },
+      ];
+      mockAuthenticatorService.eveRequest.withArgs(
+        'get',
+        `https://esi.evetech.net/latest/characters/${character.id}/orders/`
+      )
+        .and.resolveTo(new HttpResponse<any>({ status: 200, body: orderData }));
 
-    // Assert
-    expect(characterOrders).toEqual([
-      {
-        isBuyOrder: orderData[0].is_buy_order,
-        locationId: orderData[0].location_id,
-        typeId: orderData[0].type_id,
-      },
-      {
-        isBuyOrder: orderData[1].is_buy_order,
-        locationId: orderData[1].location_id,
-        typeId: orderData[1].type_id,
-      }
-    ]);
+      // Act
+      const characterOrders: Order[] = await service.getOrdersOfCharacter(character);
+
+      // Assert
+      expect(characterOrders).toEqual([
+        {
+          isBuyOrder: orderData[0].is_buy_order,
+          locationId: orderData[0].location_id,
+          typeId: orderData[0].type_id,
+        },
+        {
+          isBuyOrder: orderData[1].is_buy_order,
+          locationId: orderData[1].location_id,
+          typeId: orderData[1].type_id,
+        }
+      ]);
+
+    });
+
+  });
+
+  describe('getPortraitOfCharacter', () => {
+
+    it('should properly fetch the portrait of a character', async () => {
+
+      // Arrange
+      const portraitData = {
+        px128x128: "https://images.evetech.net/characters/95448633/portrait?tenant=tranquility&size=128",
+        px256x256: "https://images.evetech.net/characters/95448633/portrait?tenant=tranquility&size=256",
+        px512x512: "https://images.evetech.net/characters/95448633/portrait?tenant=tranquility&size=512",
+        px64x64: "https://images.evetech.net/characters/95448633/portrait?tenant=tranquility&size=64"
+      };
+      mockAuthenticatorService.eveRequest.withArgs(
+        'get',
+        `https://esi.evetech.net/latest/characters/${character.id}/portrait/`
+      )
+        .and.resolveTo(new HttpResponse<any>({ status: 200, body: portraitData }));
+
+      // Act
+      const characterPortrait: string = await service.getPortraitOfCharacter(character);
+
+      // Assert
+      expect(characterPortrait).toEqual(portraitData.px128x128);
+
+    });
+
   });
 
 });

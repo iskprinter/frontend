@@ -1,7 +1,7 @@
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { Order } from './Order';
 
-export type CharacterLocation = {
+export interface CharacterLocation {
   solarSystemId: number;
   solarSystemName: string;
   constellationId: number;
@@ -30,15 +30,6 @@ export class Character {
   constructor(
     private authenticatorService: AuthenticatorService
   ) { };
-
-  async getPortrait(): Promise<Character> {
-    const response = await this.authenticatorService.eveRequest<any>(
-      'get',
-      `https://esi.evetech.net/latest/characters/${this.id}/portrait/`
-    );
-    this.portrait = response.body.px128x128;
-    return this;
-  }
 
   async getSkills(): Promise<Character> {
     const response = await this.authenticatorService.eveRequest<any>(

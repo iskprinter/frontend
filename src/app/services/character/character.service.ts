@@ -204,4 +204,20 @@ export class CharacterService {
     return orders;
   }
 
+  async getPortraitOfCharacter(character: Character): Promise<string> {
+    type CharacterPortraitResponse = {
+      px128x128: string;
+      px256x256: string;
+      px512x512: string;
+      px64x64: string;
+    };
+    const response = await this.authenticatorService.eveRequest<CharacterPortraitResponse>(
+      'get',
+      `https://esi.evetech.net/latest/characters/${character.id}/portrait/`
+    );
+    const portraitData = response.body;
+    const portrait = portraitData.px128x128;
+    return portrait;
+  }
+
 }

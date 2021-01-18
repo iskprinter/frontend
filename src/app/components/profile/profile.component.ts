@@ -27,12 +27,14 @@ export class ProfileComponent implements OnInit {
         characterLocation,
         characterPortrait,
         characterWalletBalance
-      ] = await Promise.all([
+      ] = await Promise.allSettled([
         this.characterService.getLocationOfCharacter(this.character),
-        this.character.getPortrait(),
+        this.characterService.getPortraitOfCharacter(this.character),
         this.character.getWalletBalance()
       ]);
-      this.character.location = characterLocation;
+      this.character.location = characterLocation.status === 'fulfilled' ? characterLocation.value : undefined;
+      this.character.portrait = characterPortrait.status === 'fulfilled' ? characterPortrait.value : undefined;
+
       this.characterUpdate.emit(this.character);
     }
   }
