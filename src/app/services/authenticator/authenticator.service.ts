@@ -1,6 +1,6 @@
 import { HttpClient, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
@@ -8,7 +8,7 @@ import { LocalStorageService } from 'src/app/services/local-storage/local-storag
 import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 
 @Injectable({ providedIn: 'root' })
-export class AuthenticatorService implements AuthenticatorInterface {
+export class AuthenticatorService implements AuthenticatorInterface, CanActivate {
 
   private retryCount = 3;
 
@@ -52,6 +52,14 @@ export class AuthenticatorService implements AuthenticatorInterface {
     this.localStorage.setItem('accessToken', accessToken);
   }
 
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    if (this.isLoggedIn()) {
+        return true;
+    }
+    this.router.navigate(['/login']);
+    return false;
+}
+
   isLoggedIn(): boolean {
     return !!this.localStorage.getItem('accessToken');
   }
@@ -71,7 +79,7 @@ export class AuthenticatorService implements AuthenticatorInterface {
 
   logOut(): void {
     this.localStorage.removeItem('accessToken');
-    this.router.navigate(['']);
+    this.router.navigate(['/login']);
   }
 
   async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {

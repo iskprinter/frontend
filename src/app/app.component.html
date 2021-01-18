@@ -1,16 +1,5 @@
 <app-nav>
   <div class="container">
-
-    <ng-container *ngIf="this.authenticatorService.isLoggedIn(); then routerOutlet; else logInPage">
-    </ng-container>
-
-    <ng-template #routerOutlet>
-      <router-outlet></router-outlet>
-    </ng-template>
-
-    <ng-template #logInPage>
-      <app-login></app-login>
-    </ng-template>
-
+    <router-outlet></router-outlet>
   </div>
 </app-nav>

@@ -44,7 +44,7 @@ export class DealFinder {
     this.localStorage = localStorage || new FakeLocalStorageService();
   }
 
-  async findDeals(character: Character): Promise<Deal[]> {
+  async findDealsForCharacter(character: Character): Promise<Deal[]> {
 
     const [
       types,

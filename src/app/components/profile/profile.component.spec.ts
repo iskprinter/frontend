@@ -1,8 +1,6 @@
-import { HttpResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 
-import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { CharacterService } from 'src/app/services/character/character.service';
 
 import { ProfileComponent } from './profile.component';
@@ -10,15 +8,17 @@ import { ProfileComponent } from './profile.component';
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
   let fixture: ComponentFixture<ProfileComponent>;
-  let authenticatorServiceStub: Partial<AuthenticatorService> = {
-    isLoggedIn: () => true,
-    eveRequest: <R>(method: string, url: string, options?: any) => {
-      return new Promise<HttpResponse<R>>((resolve: (value?: HttpResponse<R>) => void, reject: (reason?: any) => void) => { });
-    }
-  };
-  let mockCharacterService: jasmine.SpyObj<CharacterService>;
+  let spyCharacterService: jasmine.SpyObj<CharacterService>;
 
   beforeEach(waitForAsync(() => {
+
+    spyCharacterService = jasmine.createSpyObj('CharacterService', [
+      'getCharacterFromToken',
+      'getLocationOfCharacter',
+      'getPortraitOfCharacter',
+      'getWalletBalanceOfCharacter'
+    ]);
+
     TestBed.configureTestingModule({
       declarations: [ProfileComponent],
       imports: [
@@ -26,18 +26,13 @@ describe('ProfileComponent', () => {
       ],
       providers: [
         {
-          provide: AuthenticatorService,
-          useValue: authenticatorServiceStub
-        },
-        {
           provide: CharacterService,
-          useValue: jasmine.createSpyObj('CharacterService', ['getCharacter'])
+          useValue: spyCharacterService
         }
       ]
     })
       .compileComponents();
 
-    mockCharacterService = TestBed.inject(CharacterService) as jasmine.SpyObj<CharacterService>;
 
   }));
 
