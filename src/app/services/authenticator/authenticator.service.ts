@@ -79,7 +79,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
 
   logOut(): void {
     this.localStorage.removeItem('accessToken');
-    this.router.navigate(['']);
+    this.router.navigate(['/login']);
   }
 
   async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {

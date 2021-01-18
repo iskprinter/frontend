@@ -126,7 +126,7 @@ describe('AuthenticatorService', () => {
       // Assert
       const token = mockLocalStorageService.getItem('accessToken');
       expect(token).toBe(undefined);
-      expect(spyRouter.navigate).toHaveBeenCalledWith(['']);
+      expect(spyRouter.navigate).toHaveBeenCalledWith(['/login']);
 
     });
 
