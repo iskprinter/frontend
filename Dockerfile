@@ -2,12 +2,12 @@ FROM node:14.9.0-alpine3.12 AS install
 WORKDIR /app
 COPY ./package.json ./package-lock.json ./
 RUN npm ci
+COPY . ./
 
 FROM install AS build
-COPY . ./
 RUN npm run build -- --configuration=production
 
-FROM build AS test
+FROM install AS test
 RUN apk update && apk add chromium
 ENV CHROME_BIN=/usr/bin/chromium-browser
 RUN npm test
