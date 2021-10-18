@@ -4,13 +4,13 @@ COPY ./package.json ./package-lock.json ./
 RUN npm ci
 COPY . ./
 
-FROM install AS build
-RUN npm run build -- --configuration=production
-
 FROM install AS test
 RUN apk update && apk add chromium
 ENV CHROME_BIN=/usr/bin/chromium-browser
 RUN npm test
+
+FROM test AS build
+RUN npm run build -- --configuration=production
 
 FROM openresty/openresty:1.19.3.1-0-alpine AS package
 COPY --from=build /app/dist/* /usr/share/nginx/html/

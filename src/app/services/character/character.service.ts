@@ -23,9 +23,14 @@ export class CharacterService {
       IntellectualProperty: string;
     };
 
-    const response = await this.authenticatorService.eveRequest<BasicCharacterDataResponse>(
+    const response = await this.authenticatorService.backendRequest<BasicCharacterDataResponse>(
       'get',
-      'https://login.eveonline.com/oauth/verify'
+      '/tokens',
+      {
+        headers: {
+          authorization: `Bearer ${this.authenticatorService.getAccessToken()}`
+        }
+      }
     );
     const characterData = response.body;
     const character: Character = {
