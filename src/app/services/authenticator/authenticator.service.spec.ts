@@ -69,7 +69,7 @@ describe('AuthenticatorService', () => {
 
 
     it('should throw an error if there is no access token', () => {
-      expect(() => service._getAccessToken())
+      expect(() => service.getAccessToken())
         .toThrowError(NoValidCredentialsError);
     });
 
@@ -264,7 +264,7 @@ describe('AuthenticatorService', () => {
 
       // Set happy defaults
       requestMethodOracle = 'get';
-      requestUrlOracle = 'https://login.eveonline.com/oauth/verify';
+      requestUrlOracle = 'https://api.iskprinter.com/tokens';
       requestParamsOracle = {
         user: 'some-user',
       };

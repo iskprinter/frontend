@@ -40,7 +40,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     return newAccessToken;
   }
 
-  _getAccessToken(): string {
+  getAccessToken(): string {
     const accessToken = this.localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new NoValidCredentialsError();
@@ -114,7 +114,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
               body: options?.body,
               headers: new HttpHeaders({
                 ...options?.headers,
-                Authorization: `Bearer ${this._getAccessToken()}`,
+                Authorization: `Bearer ${this.getAccessToken()}`,
               }),
               observe: 'response',
               params: options?.params,
@@ -144,7 +144,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     }
 
     try {
-      await this._getAccessTokenFromPriorAccessToken(this._getAccessToken());
+      await this._getAccessTokenFromPriorAccessToken(this.getAccessToken());
     } catch (error) {
       if (error instanceof NoValidCredentialsError) {
         this.logOut();

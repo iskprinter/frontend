@@ -20,7 +20,11 @@ describe('CharacterService', () => {
       providers: [
         {
           provide: AuthenticatorService,
-          useValue: jasmine.createSpyObj('AuthenticatorService', ['eveRequest'])
+          useValue: jasmine.createSpyObj('AuthenticatorService', [
+            'backendRequest',
+            'eveRequest',
+            'getAccessToken'
+          ])
         }
       ]
     });
@@ -146,7 +150,7 @@ describe('CharacterService', () => {
         "CharacterOwnerHash": "lots_of_letters_and_numbers",
         "IntellectualProperty": "EVE"
       };
-      mockAuthenticatorService.eveRequest
+      mockAuthenticatorService.backendRequest
         .and.resolveTo(new HttpResponse<any>({ status: 200, body: tokenData }));
 
       // Act
