@@ -26,8 +26,8 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     };
     let response;
     try {
-      const backendUrl = await this.environment.getVariable('BACKEND_URL');
-      response = await this.http.post<string>(`${backendUrl}/tokens`, body, { observe: 'response' }).toPromise();
+      const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
+      response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
     } catch (error) {
       if (error.status === 404) {
         this.logOut();
@@ -54,11 +54,11 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     if (this.isLoggedIn()) {
-        return true;
+      return true;
     }
     this.router.navigate(['/login']);
     return false;
-}
+  }
 
   isLoggedIn(): boolean {
     return !!this.localStorage.getItem('accessToken');
@@ -82,30 +82,32 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     this.router.navigate(['/login']);
   }
 
-  async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {
-    const body = {
-      proofType: 'authorizationCode',
-      proof: authorizationCode
-    };
-    const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
-    const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
-
-    const accessToken = response.body;
-    this._setAccessToken(accessToken);
-    return accessToken;
+  async backendRequest<R>(method: string, uri: string, options?: any): Promise<HttpResponse<R>> {
+    const backendUrl = await this.environment.getVariable('BACKEND_URL');
+    return this._withReauthIfNecessary(async () => {
+      return this.http.request<R>(
+        method,
+        `${backendUrl}${uri}`,
+        {
+          body: options?.body,
+          headers: new HttpHeaders({
+            ...options?.headers,
+          }),
+          observe: 'response',
+          params: options?.params,
+          responseType: 'json'
+        }
+      ).toPromise();
+    });
   }
 
   async eveRequest<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>> {
-
     if (!this.isLoggedIn()) {
       this.logOut();
       throw new NoValidCredentialsError();
     }
-
-    const doRequest: () => Promise<HttpResponse<R>> = async () => {
-
+    return this._withReauthIfNecessary(async () => {
       for (let i = 0; i < this.retryCount; i += 1) {
-
         try {
           return await this.http.request<R>(
             method,
@@ -128,11 +130,24 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
             throw error;
           }
         }
-
       }
-
+    });
+  }
+  
+  async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {
+    const body = {
+      proofType: 'authorizationCode',
+      proof: authorizationCode
     };
+    const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
+    const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
+    const accessToken = response.body;
+    this._setAccessToken(accessToken);
+    return accessToken;
+  }
+
+  async _withReauthIfNecessary<R>(doRequest: () => Promise<HttpResponse<R>>): Promise<HttpResponse<R>> {
     try {
       return await doRequest();
     } catch (error) {
@@ -142,7 +157,6 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
         throw error;
       }
     }
-
     try {
       await this._getAccessTokenFromPriorAccessToken(this.getAccessToken());
     } catch (error) {
@@ -151,26 +165,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
       }
       throw error;
     }
-
     return await doRequest();
-
-  }
-
-  async backendRequest<R>(method: string, uri: string, options?: any): Promise<HttpResponse<R>> {
-    const backendUrl = await this.environment.getVariable('BACKEND_URL');
-    return this.http.request<R>(
-      method,
-      `${backendUrl}${uri}`,
-      {
-        body: options?.body,
-        headers: new HttpHeaders({
-          ...options?.headers,
-        }),
-        observe: 'response',
-        params: options?.params,
-        responseType: 'json'
-      }
-    ).toPromise();
   }
 
 }
