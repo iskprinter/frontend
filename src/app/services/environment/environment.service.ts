@@ -21,16 +21,10 @@ export class EnvironmentService {
     }
 
     const requestUrl = `${await this.variables.FRONTEND_URL}/env/${varName}`;
-    let variable;
-    try {
-      variable = (await this.http.get<string>(requestUrl, { observe: 'response' }).toPromise()).body;
-    } catch (err) {
-      if (err instanceof HttpErrorResponse && err.status === 404) {
-        // leave variable as undefined
-      } else {
-        throw err;
-      }
-    }
+    const variable = (await this.http.get<string>(requestUrl, { observe: 'response' })
+      .toPromise())
+      .body;
+
     this.variables[varName] = Promise.resolve(variable);
     return this.variables[varName];
 
