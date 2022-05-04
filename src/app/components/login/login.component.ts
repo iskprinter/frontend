@@ -12,12 +12,20 @@ import { RequestInformerService } from 'src/app/services/request-informer/reques
 export class LoginComponent {
 
   loginUrl: string;
+  loginButtonDisabled: boolean = false;
 
   constructor(
-    public authenticatorService: AuthenticatorService, 
+    public authenticatorService: AuthenticatorService,
     public requestInformer: RequestInformerService,
-  ) {
-    this.authenticatorService.fetchLoginUrl().then((loginUrl) => this.loginUrl = loginUrl);
+  ) { }
+
+  ngOnInit(): void {
+    this.loginButtonDisabled = true;
+    this.authenticatorService.fetchLoginUrl()
+      .then((loginUrl) => {
+        this.loginUrl = loginUrl;
+        this.loginButtonDisabled = false;
+      });
   }
 
   // onSubmit(): void {
