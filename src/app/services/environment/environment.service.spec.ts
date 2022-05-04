@@ -109,7 +109,7 @@ describe('EnvironmentService', () => {
     // Assert
     expect(httpTestResults.requests[0].method).toBe('GET');
     expect(httpTestResults.requests[0].url).toBe(requestToMatch);
-    await expectAsync(httpTestResults.response()).toBeResolvedTo(undefined);
+    await expectAsync(httpTestResults.response()).toBeRejected();
 
   });
 
