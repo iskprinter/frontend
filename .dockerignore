@@ -8,3 +8,4 @@ jenkins-agent.yaml
 Jenkinsfile
 node_modules/
 README.md
+start.sh
