@@ -82,6 +82,7 @@ export class DealFinder {
   async _getMarketableTypes(): Promise<Type[]> {
     const typeResponse = await this.authenticatorService.backendRequest('get', '/types');
     const types = typeResponse.body as Type[];
+    console.log(`Found ${types.length} marketable types.`);
     return types;
   }
 
