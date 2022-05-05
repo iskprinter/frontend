@@ -9,6 +9,7 @@
   "scripts": {
     "ng": "ng",
     "serve": "ng serve --watch",
+    "start": "BACKEND_URL=http://localhost:3000 ./start.sh",
     "build": "ng build",
     "test": "ng test --codeCoverage=true",
     "lint": "NODE_OPTIONS='--max-old-space-size=8096' ng lint --fix",

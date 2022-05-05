@@ -71,6 +71,7 @@ export class IntrastationDealsComponent implements OnInit {
     );
     const character = await this.characterService.getCharacterFromToken();
     const deals = await dealFinder.findDealsForCharacter(character);
+    console.log(`Found ${deals.length} deals`);
     this.deals = new MatTableDataSource(deals);
     this.deals.paginator = this.paginator
     console.log('done.');
