@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer/';
 import { Injectable } from '@angular/core';
 import { Character, CharacterLocation } from 'src/app/entities/Character';
 import { Order } from 'src/app/entities/Order';
