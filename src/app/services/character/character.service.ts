@@ -13,29 +13,14 @@ export class CharacterService {
 
   async getCharacterFromToken(): Promise<Character> {
 
-    type BasicCharacterDataResponse = {
-      CharacterID: number;
-      CharacterName: string;
-      ExpiresOn: string;
-      Scopes: string;
-      TokenType: string;
-      CharacterOwnerHash: string;
-      IntellectualProperty: string;
-    };
+    const accessToken = this.authenticatorService.getAccessToken();
+    const base64Url = accessToken.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = JSON.parse(Buffer.from(base64, 'base64').toString());
 
-    const response = await this.authenticatorService.backendRequest<BasicCharacterDataResponse>(
-      'get',
-      '/tokens',
-      {
-        headers: {
-          authorization: `Bearer ${this.authenticatorService.getAccessToken()}`
-        }
-      }
-    );
-    const characterData = response.body;
     const character: Character = {
-      id: characterData.CharacterID,
-      name:  characterData.CharacterName,
+      id: Number(/CHARACTER:EVE:(?<id>\d+)/.exec(jsonPayload.sub).groups.id),
+      name: jsonPayload.name,
     };
 
     return character;
