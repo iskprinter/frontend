@@ -21,9 +21,7 @@ module.exports = function (config) {
         istanbul: { noCompact: true }
       },
       reporters: [
-        { type: 'cobertura' },
         { type: 'text' },
-        { type: 'html' }
       ],
       // if using webpack and pre-loaders, work around webpack breaking the source path
       // fixWebpackSourcePaths: true,
