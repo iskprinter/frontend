@@ -15,13 +15,13 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
 import { MatLegacyListModule as MatListModule } from '@angular/material/legacy-list';
-import { MatLegacyMenuModule as MatMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyPaginatorModule as MatPaginatorModule } from '@angular/material/legacy-paginator';
-import { MatLegacyProgressSpinnerModule as MatProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
+import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTreeModule } from '@angular/material/tree';
 /* End Material setup */
@@ -30,25 +30,27 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RequestThrottlerModule } from 'src/app/modules/request-throttler/request-throttler.module';
 
-import { NavComponent } from 'src/app/components/nav/nav.component';
-import { LoginComponent } from 'src/app/components/login/login.component';
-import { PageNotFoundComponent } from 'src/app/components/page-not-found/page-not-found.component';
-import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { CodeReceiverComponent } from './components/code-receiver/code-receiver.component';
-import { IntrastationDealsComponent } from './components/intrastation-deals/intrastation-deals.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
+import { LoginComponent } from 'src/app/components/login/login.component';
+import { NavComponent } from 'src/app/components/nav/nav.component';
+import { PageNotFoundComponent } from 'src/app/components/page-not-found/page-not-found.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { SideNavComponent } from './components/side-nav/side-nav.component';
+import { StationTradingComponent } from './components/station-trading/station-trading.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    NavComponent,
-    LoginComponent,
-    PageNotFoundComponent,
-    DashboardComponent,
     CodeReceiverComponent,
-    IntrastationDealsComponent,
+    DashboardComponent,
+    LoginComponent,
+    NavComponent,
+    PageNotFoundComponent,
     ProfileComponent,
+    SideNavComponent,
+    StationTradingComponent,
   ],
   imports: [
     AppRoutingModule,

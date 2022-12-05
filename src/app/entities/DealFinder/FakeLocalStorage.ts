@@ -2,14 +2,14 @@ import { LocalStorageInterface } from './LocalStorageInterface';
 
 export class FakeLocalStorageService implements LocalStorageInterface {
 
-    data: object = {};
+  data: object = {};
 
-    setItem(key: string, value: string) {
-      this.data[key] = value;
-    }
+  setItem(key: string, value: string) {
+    this.data[key] = value;
+  }
 
-    getItem(key: string) {
-      return this.data[key];
-    }
+  getItem(key: string) {
+    return this.data[key];
+  }
 
 }
