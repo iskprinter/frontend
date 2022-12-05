@@ -9,7 +9,7 @@
   "scripts": {
     "ng": "ng",
     "serve": "ng serve --watch",
-    "start": "BACKEND_URL='http://localhost:3000' ./start.sh",
+    "start": "BACKEND_URL='http://localhost:3000' CLIENT_ID='64596c7b4f9245928b2ea1b09489e6e2' ./start.sh",
     "build": "ng build",
     "test": "ng test --code-coverage=true",
     "lint": "NODE_OPTIONS='--max-old-space-size=8096' ng lint --fix",
@@ -32,9 +32,9 @@
     "@angular/router": "^15.0.2",
     "@types/node": "^18.11.10",
     "buffer": "^6.0.3",
-    "jasmine-core": "^4.5.0",
     "rxjs": "^7.6.0",
     "tslib": "^2.1.0",
+    "uuid": "^9.0.0",
     "zone.js": "^0.12.0"
   },
   "devDependencies": {
@@ -56,6 +56,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsdoc": "^39.6.4",
     "eslint-plugin-prefer-arrow": "^1.2.3",
+    "jasmine-core": "^4.5.0",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "^2.0.3",

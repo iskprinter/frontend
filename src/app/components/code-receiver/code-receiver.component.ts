@@ -9,6 +9,8 @@ import { AuthenticatorService } from 'src/app/services/authenticator/authenticat
   styleUrls: ['./code-receiver.component.scss']
 })
 export class CodeReceiverComponent implements OnInit {
+  message: string = 'Completing authentication...'
+  spinnerVisible: boolean = true
 
   constructor(
     public authenticatorService: AuthenticatorService,
@@ -22,9 +24,15 @@ export class CodeReceiverComponent implements OnInit {
 
       this.authenticatorService.getAccessTokenFromAuthorizationCode(parsedUrl.queryParams.code)
         .then(() => this.router.navigate(['']))
-        .catch((error) => console.error(error));
+        .catch((error) => {
+          this.message = 'Authentication failed :('
+          this.spinnerVisible = false;
+          console.error(error);
+        });
 
     } else {
+      this.message = 'Authentication failed :('
+      this.spinnerVisible = false;
       console.error('No code found in URL.');
     }
 

@@ -11,13 +11,18 @@ import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 
 import { LoginComponent } from './login.component';
+import { EnvironmentService } from 'src/app/services/environment/environment.service';
+import { environment } from 'src/environments/environment';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
 
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
-    fetchLoginUrl: () => Promise.resolve('loginUrl')
+    getLoginUrl: () => Promise.resolve('loginUrl')
+  };
+  let environmentServiceStub: Partial<EnvironmentService> = {
+    getVariable: () => Promise.resolve('some-client-id')
   };
 
   beforeEach(waitForAsync(() => {
@@ -33,7 +38,10 @@ describe('LoginComponent', () => {
         MatSnackBarModule,
         NoopAnimationsModule,
       ],
-      providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]
+      providers: [
+        { provide: AuthenticatorService, useValue: authenticatorServiceStub },
+        { provide: EnvironmentService, useValue: environmentServiceStub }
+      ]
     }).compileComponents();
   }));
 

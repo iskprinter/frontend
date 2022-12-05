@@ -7,6 +7,7 @@ container_id="$(
     docker run \
         -d \
         -e "BACKEND_URL=${BACKEND_URL}" \
+        -e "CLIENT_ID=${CLIENT_ID}" \
         -v "${PWD}/dist:/usr/share/nginx/html" \
         -p 4200:80 \
         frontend
