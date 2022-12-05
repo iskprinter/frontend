@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
@@ -31,7 +31,7 @@ export class IntrastationDealsComponent implements OnInit {
 
   deals: MatTableDataSource<Deal>;
   filteredRegions: Observable<Region[]>;
-  regionControl = new FormControl('', Validators.required);
+  regionControl = new UntypedFormControl('', Validators.required);
   regionId: number;
 
   displayedDealColumns: string[] = [
