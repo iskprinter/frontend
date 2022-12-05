@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { LegacySimpleSnackBar as SimpleSnackBar, MatLegacySnackBarRef as MatSnackBarRef } from '@angular/material/legacy-snack-bar';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
+import { EnvironmentService } from 'src/app/services/environment/environment.service';
 import { RequestInformerService } from 'src/app/services/request-informer/request-informer.service';
 
 @Component({
@@ -9,7 +10,7 @@ import { RequestInformerService } from 'src/app/services/request-informer/reques
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
   loginUrl: string;
   loginButtonDisabled: boolean = false;
@@ -17,15 +18,15 @@ export class LoginComponent {
   constructor(
     public authenticatorService: AuthenticatorService,
     public requestInformer: RequestInformerService,
+    public environmentService: EnvironmentService
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.loginButtonDisabled = true;
-    this.authenticatorService.fetchLoginUrl()
-      .then((loginUrl) => {
-        this.loginUrl = loginUrl;
-        this.loginButtonDisabled = false;
-      });
+    const clientId = await this.environmentService.getVariable('CLIENT_ID');
+    const loginUrl = await this.authenticatorService.getLoginUrl(clientId);
+    this.loginUrl = loginUrl;
+    this.loginButtonDisabled = false;
   }
 
   // onSubmit(): void {

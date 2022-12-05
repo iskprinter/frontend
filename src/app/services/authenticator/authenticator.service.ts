@@ -1,6 +1,7 @@
 import { HttpClient, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
@@ -38,6 +39,34 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     const newAccessToken = response.body;
     this._setAccessToken(newAccessToken);
     return newAccessToken;
+  }
+
+  async getLoginUrl(clientId: string): Promise<string> {
+    const responseType = 'code';
+    const scopes = [
+      'esi-assets.read_assets.v1',
+      'esi-characterstats.read.v1',
+      'esi-clones.read_clones.v1',
+      'esi-location.read_location.v1',
+      'esi-markets.read_character_orders.v1',
+      'esi-markets.structure_markets.v1',
+      'esi-skills.read_skills.v1',
+      'esi-universe.read_structures.v1',
+      'esi-wallet.read_character_wallet.v1'
+    ];
+    const state = uuidv4()
+    const loginQueryParams = new URLSearchParams({
+      response_type: responseType,
+      redirect_uri: `${window.location.protocol}//${window.location.host}/code-receiver`,
+      client_id: clientId,
+      scope: scopes.join(' '),
+      state,
+    })
+    const loginUrl = new URL(
+      `/v2/oauth/authorize?${loginQueryParams.toString()}`,
+      'https://login.eveonline.com/'
+    );
+    return loginUrl.toString();
   }
 
   getAccessToken(): string {

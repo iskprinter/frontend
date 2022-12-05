@@ -1,7 +1,7 @@
 <div>
     <mat-card>
         <mat-card-title  class="spinner-with-text">
-            <mat-spinner diameter="30"></mat-spinner><span>Completing authentication...</span>
+            <mat-spinner diameter="30" *ngIf="spinnerVisible"></mat-spinner><span>{{message}}</span>
         </mat-card-title>
     </mat-card>
 </div>
