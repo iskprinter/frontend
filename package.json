@@ -11,7 +11,7 @@
     "serve": "ng serve --watch",
     "start": "BACKEND_URL='http://localhost:3000' ./start.sh",
     "build": "ng build",
-    "test": "ng test --codeCoverage=true",
+    "test": "ng test --code-coverage=true",
     "lint": "NODE_OPTIONS='--max-old-space-size=8096' ng lint --fix",
     "e2e": "ng e2e"
   },
