@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { map } from 'rxjs/operators';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatLegacyPaginator as MatPaginator } from '@angular/material/legacy-paginator';
+import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { Observable } from 'rxjs';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
