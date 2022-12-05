@@ -7,10 +7,10 @@ import { AuthenticatorService } from 'src/app/services/authenticator/authenticat
 import { DashboardComponent } from './dashboard.component';
 
 @Component({
-  selector: 'app-intrastation-deals',
+  selector: 'app-station-trading',
   template: ''
 })
-class MockIntrastationDealsComponent {
+class MockStationTradingComponent {
   @Input() character: Character;
 }
 
@@ -33,7 +33,7 @@ describe('DashboardComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ 
         DashboardComponent,
-        MockIntrastationDealsComponent,
+        MockStationTradingComponent,
         MockProfileComponent
       ],
       providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { LegacySimpleSnackBar as SimpleSnackBar, MatLegacySnackBarRef as MatSnackBarRef } from '@angular/material/legacy-snack-bar';
+import { SimpleSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';

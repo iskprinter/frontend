@@ -197,9 +197,9 @@ export class DealFinder {
       // Calculate the simple error for each option.
       let b = [
         [a[0][0] - a[1][0],    // [0][0] = highest - minSell
-        a[0][0] - a[1][1]],  // [0][1] = highest - maxBuy
+          a[0][0] - a[1][1]],  // [0][1] = highest - maxBuy
         [a[0][1] - a[1][0],    // [1][0] = lowest - minSell
-        a[0][1] - a[1][1]]   // [1][1] = lowest - maxBuy
+          a[0][1] - a[1][1]]   // [1][1] = lowest - maxBuy
       ];
 
       // Square the errors.
@@ -212,9 +212,9 @@ export class DealFinder {
       // Calculate the total error for each possibility.
       let error = [
         [b[0][0] + b[1][0],  // [0][0] = highestIsSell and LowestIsSell
-        b[0][0] + b[1][1]], // [0][1] = highestIsSell and LowestIsBuy
+          b[0][0] + b[1][1]], // [0][1] = highestIsSell and LowestIsBuy
         [b[0][1] + b[1][0],  // [1][0] = highestIsBuy and LowestIsSell
-        b[0][1] + b[1][1]]  // [1][1] = highestIsBuy and LowestIsBuy
+          b[0][1] + b[1][1]]  // [1][1] = highestIsBuy and LowestIsBuy
       ];
 
       // Initialize a pair of indices that will correspond to the min error.
@@ -254,30 +254,30 @@ export class DealFinder {
   // This function will MUTATE the workingData parameter.
   _getBuyFraction(workingData, data, i, minIndex) {
     switch (10 * minIndex.j + minIndex.k) {
-      case 0:
-        // Highest and lowest are both sell.
-        return 0;
-      case 1:
-        // Highest price is sell and lowest price is buy.
-        return (data[i].highest - data[i].average)
+    case 0:
+      // Highest and lowest are both sell.
+      return 0;
+    case 1:
+      // Highest price is sell and lowest price is buy.
+      return (data[i].highest - data[i].average)
           / (data[i].highest - data[i].lowest);
-      case 10:
-        // Highest is buy and lowest is sell.
-        // This is not possible. Make an assumption.
-        let totalCumulativeVolume = workingData.totalVolumeOfBuys + workingData.totalVolumeOfSells;
-        if (totalCumulativeVolume == 0) {
-          // If there's nothing to go on, assume they're 50-50 split.
-          return 0.5;
-        } else {
-          // If we do have prior volume data, then assume it has the same
-          // distribution as what has already been seen.
-          return workingData.totalVolumeOfBuys / totalCumulativeVolume;
-        }
-      case 11:
-        // Highest and lowest are both buy.
-        return 1;
-      default:
-        throw new Error('Impossible combination if j and k. Please debug me.');
+    case 10:
+      // Highest is buy and lowest is sell.
+      // This is not possible. Make an assumption.
+      let totalCumulativeVolume = workingData.totalVolumeOfBuys + workingData.totalVolumeOfSells;
+      if (totalCumulativeVolume == 0) {
+        // If there's nothing to go on, assume they're 50-50 split.
+        return 0.5;
+      } else {
+        // If we do have prior volume data, then assume it has the same
+        // distribution as what has already been seen.
+        return workingData.totalVolumeOfBuys / totalCumulativeVolume;
+      }
+    case 11:
+      // Highest and lowest are both buy.
+      return 1;
+    default:
+      throw new Error('Impossible combination if j and k. Please debug me.');
     }
 
   }

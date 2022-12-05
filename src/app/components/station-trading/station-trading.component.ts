@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { map } from 'rxjs/operators';
-import { MatLegacyPaginator as MatPaginator } from '@angular/material/legacy-paginator';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
@@ -19,11 +19,11 @@ class Region {
 }
 
 @Component({
-  selector: 'app-intrastation-deals',
-  templateUrl: './intrastation-deals.component.html',
-  styleUrls: ['./intrastation-deals.component.scss']
+  selector: 'app-station-trading',
+  templateUrl: './station-trading.component.html',
+  styleUrls: ['./station-trading.component.scss']
 })
-export class IntrastationDealsComponent implements OnInit {
+export class StationTradingComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
