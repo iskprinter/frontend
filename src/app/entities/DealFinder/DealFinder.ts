@@ -55,6 +55,10 @@ export class DealFinder {
     ]);
     this.types = types;
 
+    if (!characterLocation.structureId) {
+      throw new Error('The character is not docked at a structure. Please dock at the structure (not a station) where you would like to trade.');
+    }
+
     const [
       currentPrices,
       _1,
