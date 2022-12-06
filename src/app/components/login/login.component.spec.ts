@@ -1,18 +1,17 @@
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { LayoutModule } from '@angular/cdk/layout';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
 import { MatLegacyMenuModule as MatMenuModule } from '@angular/material/legacy-menu';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 
 import { LoginComponent } from './login.component';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
-import { environment } from 'src/environments/environment';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -29,6 +28,7 @@ describe('LoginComponent', () => {
     TestBed.configureTestingModule({
       declarations: [LoginComponent],
       imports: [
+        BrowserAnimationsModule,
         LayoutModule,
         MatButtonModule,
         MatCardModule,
@@ -36,7 +36,6 @@ describe('LoginComponent', () => {
         MatIconModule,
         MatMenuModule,
         MatSnackBarModule,
-        NoopAnimationsModule,
       ],
       providers: [
         { provide: AuthenticatorService, useValue: authenticatorServiceStub },

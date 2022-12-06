@@ -10,6 +10,18 @@ import { AuthenticatorService } from './services/authenticator/authenticator.ser
 })
 class MockNavComponent { }
 
+@Component({
+  selector: 'app-notifier',
+  template: ''
+})
+class MockNotifierComponent { }
+
+@Component({
+  selector: 'app-sidenav',
+  template: ''
+})
+class MockSidenavComponent { }
+
 describe('AppComponent', () => {
 
   let mockAuthenticatorService: jasmine.SpyObj<AuthenticatorService>;
@@ -21,7 +33,9 @@ describe('AppComponent', () => {
       ],
       declarations: [
         AppComponent,
-        MockNavComponent
+        MockNavComponent,
+        MockNotifierComponent,
+        MockSidenavComponent,
       ],
       providers: [
         {

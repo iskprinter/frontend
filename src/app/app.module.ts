@@ -37,8 +37,9 @@ import { LoginComponent } from 'src/app/components/login/login.component';
 import { NavComponent } from 'src/app/components/nav/nav.component';
 import { PageNotFoundComponent } from 'src/app/components/page-not-found/page-not-found.component';
 import { ProfileComponent } from './components/profile/profile.component';
-import { SideNavComponent } from './components/side-nav/side-nav.component';
+import { SidenavComponent } from './components/sidenav/sidenav.component';
 import { StationTradingComponent } from './components/station-trading/station-trading.component';
+import { NotifierComponent } from './components/notifier/notifier.component';
 
 @NgModule({
   declarations: [
@@ -49,8 +50,9 @@ import { StationTradingComponent } from './components/station-trading/station-tr
     NavComponent,
     PageNotFoundComponent,
     ProfileComponent,
-    SideNavComponent,
+    SidenavComponent,
     StationTradingComponent,
+    NotifierComponent,
   ],
   imports: [
     AppRoutingModule,
