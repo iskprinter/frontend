@@ -1,5 +1,5 @@
 import { BrowserModule, Title } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { ErrorHandler, NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -7,14 +7,14 @@ import { AppComponent } from './app.component';
 /* Begin Material setup, per https://material.angular.io/guide/getting-started */
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LayoutModule } from '@angular/cdk/layout';
-import { MatLegacyAutocompleteModule as MatAutocompleteModule } from '@angular/material/legacy-autocomplete';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
-import { MatLegacyCheckboxModule as MatCheckboxModule } from '@angular/material/legacy-checkbox';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
-import { MatLegacyListModule as MatListModule } from '@angular/material/legacy-list';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -40,6 +40,7 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { SidenavComponent } from './components/sidenav/sidenav.component';
 import { StationTradingComponent } from './components/station-trading/station-trading.component';
 import { NotifierComponent } from './components/notifier/notifier.component';
+import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
   declarations: [
@@ -58,28 +59,29 @@ import { NotifierComponent } from './components/notifier/notifier.component';
     AppRoutingModule,
 
     /* Begin Material setup */
-    BrowserAnimationsModule,
     BrowserModule, // Must be imported before any Mat*Module module.
     LayoutModule,
     MatAutocompleteModule,
     MatButtonModule,
+    MatCardModule,
     MatCheckboxModule,
-    MatInputModule,
+    MatGridListModule,
     MatIconModule,
+    MatInputModule,
     MatListModule,
+    MatMenuModule,
+    MatPaginatorModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
     MatSidenavModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule,
-    MatToolbarModule,
-    MatGridListModule,
-    MatCardModule,
-    MatMenuModule,
-    MatTableModule,
-    MatPaginatorModule,
     MatSortModule,
+    MatTableModule,
+    MatToolbarModule,
     MatTreeModule,
     /* End Material setup */
 
+    BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
     RequestThrottlerModule,
@@ -87,6 +89,7 @@ import { NotifierComponent } from './components/notifier/notifier.component';
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher },
+    { provide: ErrorHandler, useClass: NotifierComponent },
     Title,
   ],
   bootstrap: [AppComponent]
