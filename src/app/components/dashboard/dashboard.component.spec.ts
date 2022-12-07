@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { MatCardModule } from '@angular/material/card';
 import { Character } from 'src/app/entities/Character';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
@@ -35,6 +36,9 @@ describe('DashboardComponent', () => {
         DashboardComponent,
         MockStationTradingComponent,
         MockProfileComponent
+      ],
+      imports: [
+        MatCardModule
       ],
       providers: [ { provide: AuthenticatorService, useValue: authenticatorServiceStub } ]
     })
