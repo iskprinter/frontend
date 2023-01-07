@@ -9,10 +9,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class NotifierComponent implements ErrorHandler {
   constructor(private _snackBar: MatSnackBar) {}
   handleError(error: any): void {
-    console.log('trying to open snackbar...');
-    console.log(error.message);
-    const errorMessage: string = error.message.match(/(Error: .*)\n/)[1].replace(/\n/, ' ');
-    this.openSnackBar(errorMessage);
+    const errorMessages: string = error.message.match(/(Error: .*)\n/);
+    if (errorMessages && errorMessages.length > 0) {
+      this.openSnackBar(errorMessages[1].replace(/\n/, ' '))
+    } else {
+      this.openSnackBar(error.message);
+    }
   }
 
   openSnackBar(message: string) {

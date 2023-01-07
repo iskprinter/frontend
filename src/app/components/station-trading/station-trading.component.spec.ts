@@ -6,7 +6,8 @@ import { MatTableModule } from '@angular/material/table';
 import { Region } from 'src/app/entities/Region';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
-import { CharacterService } from 'src/app/services/character/character.service';
+import { DealService } from 'src/app/services/deal/deal.service';
+import { EnvironmentService } from 'src/app/services/environment/environment.service';
 
 import { StationTradingComponent } from './station-trading.component';
 
@@ -15,7 +16,8 @@ describe('StationTradingComponent', () => {
   let fixture: ComponentFixture<StationTradingComponent>;
 
   let spyAuthenticatorService: jasmine.SpyObj<AuthenticatorService>;
-  let spyCharacterService: jasmine.SpyObj<CharacterService>;
+  let spyDealService: jasmine.SpyObj<DealService>;
+  let spyEnvironmentService: jasmine.SpyObj<EnvironmentService>;
 
   beforeEach(waitForAsync(() => {
 
@@ -33,15 +35,20 @@ describe('StationTradingComponent', () => {
           useValue: jasmine.createSpyObj('AuthenticatorService', ['eveRequest'])
         },
         {
-          provide: CharacterService,
-          useValue: jasmine.createSpyObj('CharacterService', ['getOrdersOfCharacter'])
-        }
+          provide: DealService,
+          useValue: jasmine.createSpyObj('DealService', ['getDeals'])
+        },
+        {
+          provide: EnvironmentService,
+          useValue: jasmine.createSpyObj('EnvironmentService', ['getVariable'])
+        },
       ]
     })
       .compileComponents();
 
     spyAuthenticatorService = TestBed.inject(AuthenticatorService) as jasmine.SpyObj<AuthenticatorService>;
-    spyCharacterService = TestBed.inject(CharacterService) as jasmine.SpyObj<CharacterService>;
+    spyDealService = TestBed.inject(DealService) as jasmine.SpyObj<DealService>;
+    spyEnvironmentService = TestBed.inject(EnvironmentService) as jasmine.SpyObj<EnvironmentService>;
 
   }));
 

@@ -1,4 +1,3 @@
 export interface Type {
-    typeId: number;
-    typeName: string;
+  type_id: number;
 }

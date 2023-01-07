@@ -5,13 +5,14 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 
+import { Deal } from 'src/app/entities/Deal';
+
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
-import { Deal } from 'src/app/entities/DealFinder/Deal';
-import { DealFinder } from 'src/app/entities/DealFinder/DealFinder';
+import { EnvironmentService } from 'src/app/services/environment/environment.service';
+import { DealService } from 'src/app/services/deal/deal.service';
 import { RequestInformerService } from 'src/app/services/request-informer/request-informer.service';
 import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 import regions from 'src/assets/regions.json';
-import { CharacterService } from 'src/app/services/character/character.service';
 
 class Region {
   regionName: string;
@@ -35,20 +36,21 @@ export class StationTradingComponent implements OnInit {
   regionId: number;
 
   displayedDealColumns: string[] = [
-    'typeId',
+    // 'typeId',
     'typeName',
-    'volume',
-    'buyPrice',
-    'sellPrice',
-    'fees',
-    'profit',
+    // 'volume',
+    // 'buyPrice',
+    // 'sellPrice',
+    // 'fees',
+    // 'profit',
   ];
 
   constructor(
     public authenticatorService: AuthenticatorService,
+    public dealService: DealService,
+    public environmentService: EnvironmentService,
     public requestInformer: RequestInformerService,
     public localStorage: LocalStorageService,
-    private characterService: CharacterService,
   ) { }
 
   ngOnInit(): void {
@@ -63,18 +65,9 @@ export class StationTradingComponent implements OnInit {
   }
 
   async printIsk() {
-    console.log('running...');
-    const dealFinder = new DealFinder(
-      this.authenticatorService,
-      this.localStorage,
-      this.characterService
-    );
-    const character = await this.characterService.getCharacterFromToken();
-    const deals = await dealFinder.findDealsForCharacter(character);
-    console.log(`Found ${deals.length} deals`);
-    this.deals = new MatTableDataSource(deals);
-    this.deals.paginator = this.paginator
-    console.log('done.');
+    const backendUrl = await this.environmentService.getVariable('BACKEND_URL');
+    const token = this.authenticatorService.getAccessToken();
+    this.dealService.getDeals(backendUrl, token).subscribe((body) => this.deals = new MatTableDataSource(body.deals));
   }
 
 }

@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer/';
 import { Injectable } from '@angular/core';
-import { Character, CharacterLocation } from 'src/app/entities/Character';
+import { Character } from 'src/app/entities/Character';
+import { CharacterLocation } from 'src/app/entities/CharacterLocation';
 import { Order } from 'src/app/entities/Order';
 import { Skill } from 'src/app/entities/Skill';
 import { AuthenticatorService } from '../authenticator/authenticator.service';
