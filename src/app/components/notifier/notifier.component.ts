@@ -1,4 +1,4 @@
-import { Component, ErrorHandler } from '@angular/core';
+import { Component, ErrorHandler, NgZone } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -7,7 +7,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./notifier.component.scss']
 })
 export class NotifierComponent implements ErrorHandler {
-  constructor(private _snackBar: MatSnackBar) {}
+  constructor(
+    private ngZone: NgZone,
+    private _snackBar: MatSnackBar
+  ) { }
   handleError(error: any): void {
     const errorMessages: string = error.message.match(/(Error: .*)\n/);
     if (errorMessages && errorMessages.length > 0) {
@@ -18,9 +21,14 @@ export class NotifierComponent implements ErrorHandler {
   }
 
   openSnackBar(message: string) {
-    this._snackBar.open(message, 'Dismiss', {
-      duration: 8000,
-      panelClass: ['mat-toolbar', 'mat-primary'],
-    });
+    this.ngZone.run(() => {
+      setTimeout(
+        () => {
+          this._snackBar.open(message, 'Dismiss', {
+            duration: 8000,
+            panelClass: ['mat-toolbar', 'mat-primary'],
+          })
+        }, 0);
+    })
   }
 }
