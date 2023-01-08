@@ -25,6 +25,8 @@ export class StationTradingComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild('regionSelect') regionSelect: MatSelect;
   @ViewChild('systemSelect') systemSelect: MatSelect;
+  @ViewChild('stationSelect') stationSelect: MatSelect;
+  @ViewChild('structureSelect') structureSelect: MatSelect;
 
   deals: MatTableDataSource<Deal>;
   regions: Region[];
@@ -61,20 +63,28 @@ export class StationTradingComponent implements OnInit {
     const backendUrl = await this.environmentService.getVariable('BACKEND_URL');
     const regionId = this.regionSelect.value;
     this.iskprinterApiService.getSystems(backendUrl, regionId).subscribe((body) => {
-      this.systems = body.systems;
+      this.systems = body.systems.sort((s1, s2) => s1.name.localeCompare(s2.name));
     });
   }
 
   async onSystemSelected(event: Event): Promise<void> {
-    // TODO load structures and stations
+    const backendUrl = await this.environmentService.getVariable('BACKEND_URL');
+    const token = this.authenticatorService.getAccessToken();
+    const systemId = this.systemSelect.value;
+    this.iskprinterApiService.getStations(backendUrl, systemId).subscribe((body) => {
+      this.stations = body.stations.sort((s1, s2) => s1.name.localeCompare(s2.name));
+    });
+    this.iskprinterApiService.getStructures(backendUrl, token, systemId).subscribe((body) => {
+      this.structures = body.structures.sort((s1, s2) => s1.name.localeCompare(s2.name))
+    });
   }
 
   async onStationSelected(event: Event): Promise<void> {
-    // TODO
+    this.structureSelect.writeValue(undefined);
   }
 
   async onStructureSelected(event: Event): Promise<void> {
-    // TODO
+    this.stationSelect.writeValue(undefined);
   }
 
   async useCurrentLocation(): Promise<void> {
@@ -84,7 +94,12 @@ export class StationTradingComponent implements OnInit {
   async printIsk(): Promise<void> {
     const backendUrl = await this.environmentService.getVariable('BACKEND_URL');
     const token = this.authenticatorService.getAccessToken();
-    this.iskprinterApiService.getDeals(backendUrl, token).subscribe((body) => {
+    const stationId = this.stationSelect.value;
+    const structureId = this.structureSelect.value;
+    if (!stationId && !structureId) {
+      throw new Error('Location needs to be set.');
+    }
+    this.iskprinterApiService.getDeals(backendUrl, token, { stationId, structureId }).subscribe((body) => {
       this.deals = new MatTableDataSource(body.deals);
       this.deals.paginator = this.paginator;
     });
