@@ -1,22 +1,58 @@
 <form>
     <h4>Location</h4>
-    <mat-form-field appearance="fill">
-        <mat-label>Region</mat-label>
-        <mat-select #regionSelect (selectionChange)="onRegionSelected($event)">
-            <mat-option *ngFor="let region of regions" [value]="region.region_id">
-                {{region.name}}
-            </mat-option>
-        </mat-select>
-    </mat-form-field>
-    <br>
-    <mat-form-field appearance="fill">
-        <mat-label>System</mat-label>
-        <mat-select #systemSelect (selectionChange)="onSystemSelected($event)">
-            <mat-option *ngFor="let system of systems" [value]="system.system_id">
-                {{system.name}}
-            </mat-option>
-        </mat-select>
-    </mat-form-field>
+    <div class="flex-container">
+        <div>
+            <mat-form-field>
+                <mat-label>Region</mat-label>
+                <mat-select #regionSelect (selectionChange)="onRegionSelected($event)">
+                    <mat-option *ngFor="let region of regions" [value]="region.region_id">
+                        {{region.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <br>
+            <mat-form-field>
+                <mat-label>System</mat-label>
+                <mat-select #systemSelect (selectionChange)="onSystemSelected($event)">
+                    <mat-option *ngFor="let system of systems" [value]="system.system_id">
+                        {{system.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <br>
+            <mat-form-field>
+                <mat-label>Station</mat-label>
+                <mat-select #stationSelect (selectionChange)="onStationSelected($event)">
+                    <mat-option *ngFor="let station of stations" [value]="station.station_id">
+                        {{station.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            or
+            <mat-form-field>
+                <mat-label>Structure</mat-label>
+                <mat-select #structureSelect (selectionChange)="onStructureSelected($event)">
+                    <mat-option *ngFor="let structure of structures" [value]="structure.structure_id">
+                        {{structure.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+        <div class="vertical-line"></div>
+        <div>
+            or
+        </div>
+        <div class="vertical-line"></div>
+        <div>
+            <button mat-raised-button class="spinner-with-text" color="accent" (click)="useCurrentLocation()"
+                [disabled]="requestInformer.isLoading | async">
+                <div class="align-content-center">
+                    <mat-spinner *ngIf="requestInformer.isLoading | async" diameter="16" color="accent"></mat-spinner>
+                    <span>Use current location</span>
+                </div>
+            </button>
+        </div>
+    </div>
 </form>
 
 <div class="align-content-center">

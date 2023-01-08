@@ -1,4 +1,4 @@
-import { Component, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 
@@ -12,6 +12,8 @@ import { LocalStorageService } from 'src/app/services/local-storage/local-storag
 import { Region } from 'src/app/entities/Region';
 import { MatSelect } from '@angular/material/select';
 import { System } from 'src/app/entities/System';
+import { Station } from 'src/app/entities/Station';
+import { Structure } from 'src/app/entities/Structure';
 
 @Component({
   selector: 'app-station-trading',
@@ -27,6 +29,8 @@ export class StationTradingComponent implements OnInit {
   deals: MatTableDataSource<Deal>;
   regions: Region[];
   systems: System[];
+  stations: Station[];
+  structures: Structure[];
 
   displayedDealColumns: string[] = [
     // 'typeId',
@@ -62,6 +66,18 @@ export class StationTradingComponent implements OnInit {
   }
 
   async onSystemSelected(event: Event): Promise<void> {
+    // TODO load structures and stations
+  }
+
+  async onStationSelected(event: Event): Promise<void> {
+    // TODO
+  }
+
+  async onStructureSelected(event: Event): Promise<void> {
+    // TODO
+  }
+
+  async useCurrentLocation(): Promise<void> {
     // TODO
   }
 

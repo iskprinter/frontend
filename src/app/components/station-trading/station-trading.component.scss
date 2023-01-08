@@ -1,5 +1,4 @@
 button {
-    width: 50%;
     margin: 16px;
 }
 
@@ -19,4 +18,25 @@ table {
 .mat-column-fees,
 .mat-column-profit {
     text-align: right;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    // height: 250px;
+}
+
+.flex-container > div {
+    flex: none;
+    // background: gray;
+    box-sizing: border-box;
+    // border: 4px solid white;
+    margin: 16px;
+}
+
+.vertical-line {
+    border-left: 1px solid gray;
+    height: 132px;
 }
