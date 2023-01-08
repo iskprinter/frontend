@@ -1,19 +1,35 @@
+<form>
+    <h4>Location</h4>
+    <mat-form-field appearance="fill">
+        <mat-label>Region</mat-label>
+        <mat-select #regionSelect (selectionChange)="onRegionSelected($event)">
+            <mat-option *ngFor="let region of regions" [value]="region.region_id">
+                {{region.name}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-form-field appearance="fill">
+        <mat-label>System</mat-label>
+        <mat-select #systemSelect (selectionChange)="onSystemSelected($event)">
+            <mat-option *ngFor="let system of systems" [value]="system.system_id">
+                {{system.name}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+</form>
+
+<div class="align-content-center">
+    <button mat-raised-button class="spinner-with-text" color="accent" (click)="printIsk();"
+        [disabled]="requestInformer.isLoading | async">
+        <div class="align-content-center">
+            <mat-spinner *ngIf="requestInformer.isLoading | async" diameter="16" color="accent"></mat-spinner>
+            <span>Print ISK</span>
+        </div>
+    </button>
+</div>
+
 <mat-card>
-
-    <mat-card-header>
-        
-    </mat-card-header>
-    
-    <div class="align-content-center">
-        <button mat-raised-button class="spinner-with-text" color="accent" (click)="printIsk();"
-            [disabled]="requestInformer.isLoading | async">
-            <div class="align-content-center">
-                <mat-spinner *ngIf="requestInformer.isLoading | async" diameter="16" color="accent"></mat-spinner>
-                <span>Print ISK</span>
-            </div>
-        </button>
-    </div>
-
     <mat-card-content>
 
         <table mat-table [dataSource]="deals">
@@ -61,8 +77,7 @@
 
         </table>
 
-        <mat-paginator [hidePageSize]="true" [pageSize]="10" showFirstLastButtons></mat-paginator>
+        <mat-paginator [hidePageSize]="true" [pageSize]="8" showFirstLastButtons></mat-paginator>
 
     </mat-card-content>
-
 </mat-card>

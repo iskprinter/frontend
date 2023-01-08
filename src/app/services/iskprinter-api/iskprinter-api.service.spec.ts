@@ -1,10 +1,10 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { DealService } from './deal.service';
+import { IskprinterApiService } from './iskprinter-api.service';
 
 describe('DealService', () => {
-  let service: DealService;
+  let service: IskprinterApiService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -12,7 +12,7 @@ describe('DealService', () => {
         HttpClientTestingModule,
       ],
     });
-    service = TestBed.inject(DealService);
+    service = TestBed.inject(IskprinterApiService);
   });
 
   it('should be created', () => {

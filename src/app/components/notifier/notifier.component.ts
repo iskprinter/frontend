@@ -11,6 +11,7 @@ export class NotifierComponent implements ErrorHandler {
     private ngZone: NgZone,
     private _snackBar: MatSnackBar
   ) { }
+
   handleError(error: any): void {
     const errorMessages: string = error.message.match(/(Error: .*)\n/);
     if (errorMessages && errorMessages.length > 0) {
