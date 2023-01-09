@@ -74,7 +74,7 @@ export class StationTradingComponent implements OnInit {
     this.iskprinterApiService.getStations(backendUrl, systemId).subscribe((body) => {
       this.stations = body.stations.sort((s1, s2) => s1.name.localeCompare(s2.name));
     });
-    this.iskprinterApiService.getStructures(backendUrl, token, systemId).subscribe((body) => {
+    this.iskprinterApiService.getStructures(backendUrl, systemId).subscribe((body) => {
       this.structures = body.structures.sort((s1, s2) => s1.name.localeCompare(s2.name))
     });
   }
@@ -99,7 +99,7 @@ export class StationTradingComponent implements OnInit {
     if (!stationId && !structureId) {
       throw new Error('Location needs to be set.');
     }
-    this.iskprinterApiService.getDeals(backendUrl, token, { stationId, structureId }).subscribe((body) => {
+    this.iskprinterApiService.getDeals(backendUrl, { stationId, structureId }).subscribe((body) => {
       this.deals = new MatTableDataSource(body.deals);
       this.deals.paginator = this.paginator;
     });
