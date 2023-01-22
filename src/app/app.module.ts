@@ -41,6 +41,7 @@ import { SidenavComponent } from './components/sidenav/sidenav.component';
 import { StationTradingComponent } from './components/station-trading/station-trading.component';
 import { NotifierComponent } from './components/notifier/notifier.component';
 import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatCardModule,
     MatCheckboxModule,
     MatGridListModule,
+    MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatListModule,

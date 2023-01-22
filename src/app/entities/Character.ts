@@ -1,29 +1,21 @@
-import { Order } from './Order';
-
 export interface CharacterLocation {
-  solarSystemId: number;
-  solarSystemName: string;
-  constellationId: number;
-  constellationName: string;
-  regionId: number;
-  regionName: string,
-  stationId?: number;
-  stationName?: string;
-  structureId?: number;
-  structureName?: string;
+  solar_system_id: number;
+  station_id?: number;
+  structure_id?: number;
+}
+
+export interface CharacterSkills {
+  skills: {
+    active_skill_level: number,
+    skill_id: number,
+    skillpoints_in_skill: number,
+    trained_skill_level: number
+  }[];
 }
 
 export interface Character {
-
   id: number;
   name: string;
-  // location: CharacterLocation;
-  // orders: Order[];
-  // portrait: string;
-  // skills: {
-  //   skillId: number,
-  //   activeSkillLevel: number,
-  // }[];
-  // walletBalance: number;
-
-};
+  location?: CharacterLocation;
+  skills?: CharacterSkills;
+}

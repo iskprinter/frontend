@@ -7,6 +7,7 @@ import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
 import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatorService implements AuthenticatorInterface, CanActivate {
@@ -27,7 +28,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     };
     let response;
     try {
-      const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
+      const BACKEND_URL = await new Promise((resolve) => this.environment.getVariable('BACKEND_URL').subscribe(resolve));
       response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
     } catch (error) {
       if (error.status === 404) {
@@ -41,7 +42,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     return newAccessToken;
   }
 
-  async getLoginUrl(clientId: string): Promise<string> {
+  getLoginUrl(clientId: string): string {
     const responseType = 'code';
     const scopes = [
       'esi-assets.read_assets.v1',
@@ -111,34 +112,15 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     this.router.navigate(['/login']);
   }
 
-  async backendRequest<R>(method: string, uri: string, options?: any): Promise<HttpResponse<R>> {
-    const backendUrl = await this.environment.getVariable('BACKEND_URL');
-    return this._withReauthIfNecessary(async () => {
-      return this.http.request<R>(
-        method,
-        `${backendUrl}${uri}`,
-        {
-          body: options?.body,
-          headers: new HttpHeaders({
-            ...options?.headers,
-          }),
-          observe: 'response',
-          params: options?.params,
-          responseType: 'json'
-        }
-      ).toPromise();
-    });
-  }
-
-  async eveRequest<R>(method: string, url: string, options?: any): Promise<HttpResponse<R>> {
+  eveRequest<R>(method: string, url: string, options?: any): Observable<R> {
     if (!this.isLoggedIn()) {
       this.logOut();
       throw new NoValidCredentialsError();
     }
-    return this._withReauthIfNecessary(async () => {
+    return this._withReauthIfNecessary(() => {
       for (let i = 0; i < this.retryCount; i += 1) {
         try {
-          return await this.http.request<R>(
+          return this.http.request<R>(
             method,
             url,
             {
@@ -147,11 +129,10 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
                 ...options?.headers,
                 Authorization: `Bearer ${this.getAccessToken()}`,
               }),
-              observe: 'response',
               params: options?.params,
               responseType: 'json'
             }
-          ).toPromise();
+          );
         } catch (error) {
           if (error instanceof HttpErrorResponse && error.status === 0) {
             // Likely error due to absent CORS header on response. Retry.
@@ -162,13 +143,13 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
       }
     });
   }
-  
+
   async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {
     const body = {
       proofType: 'authorizationCode',
       proof: authorizationCode
     };
-    const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
+    const BACKEND_URL = await new Promise((resolve) => this.environment.getVariable('BACKEND_URL').subscribe(resolve));
     const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
     const accessToken = response.body;
@@ -176,25 +157,31 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     return accessToken;
   }
 
-  async _withReauthIfNecessary<R>(doRequest: () => Promise<HttpResponse<R>>): Promise<HttpResponse<R>> {
-    try {
-      return await doRequest();
-    } catch (error) {
-      if ([401, 403].includes(error.status)) {
-        // This is okay here. Attempt to get a fresh access token.
-      } else {
-        throw error;
-      }
-    }
-    try {
-      await this._getAccessTokenFromPriorAccessToken(this.getAccessToken());
-    } catch (error) {
-      if (error instanceof NoValidCredentialsError) {
-        this.logOut();
-      }
-      throw error;
-    }
-    return await doRequest();
+  _withReauthIfNecessary<T>(doRequest: () => Observable<T>): Observable<T> {
+    return new Observable((subscriber) => {
+      return doRequest().subscribe({
+        next: (body) => subscriber.next(body),
+        error: (err) => {
+          if (![401, 403].includes(err.status)) {
+            subscriber.error(err);
+            return;
+          }
+          this._getAccessTokenFromPriorAccessToken(this.getAccessToken())
+            .then(
+              () => doRequest().subscribe({
+                next: (body) => subscriber.next(body),
+                error: (err) => subscriber.error(err),
+              }),
+              (err) => {
+                if (err instanceof NoValidCredentialsError) {
+                  this.logOut();
+                  return;
+                }
+                subscriber.error(err);
+              }
+            )
+        }
+      });
+    });
   }
-
 }

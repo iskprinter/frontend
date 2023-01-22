@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
-import { Character, CharacterLocation } from 'src/app/entities/Character';
+import { Character } from 'src/app/entities/Character';
+import { CharacterLocation } from 'src/app/entities/CharacterLocation'
 import { CharacterService } from 'src/app/services/character/character.service';
 
 @Component({

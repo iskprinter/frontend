@@ -1,5 +1,5 @@
 export interface Order {
-    isBuyOrder: boolean,
-    locationId: number,
-    typeId: number
+  isBuyOrder: boolean,
+  locationId: number,
+  typeId: number
 };

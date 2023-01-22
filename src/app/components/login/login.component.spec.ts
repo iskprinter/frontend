@@ -12,16 +12,17 @@ import { AuthenticatorService } from 'src/app/services/authenticator/authenticat
 
 import { LoginComponent } from './login.component';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
+import { Observable } from 'rxjs';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
 
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
-    getLoginUrl: () => Promise.resolve('loginUrl')
+    getLoginUrl: () => 'loginUrl',
   };
   let environmentServiceStub: Partial<EnvironmentService> = {
-    getVariable: () => Promise.resolve('some-client-id')
+    getVariable: (varName) => new Observable((subscriber) => subscriber.next('variable')),
   };
 
   beforeEach(waitForAsync(() => {

@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { DOCUMENT } from '@angular/common';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class EnvironmentService {
 
-  private variables: { [key: string]: Promise<string> } = {
-    FRONTEND_URL: Promise.resolve(`${this.document.location.protocol}//${this.document.location.host}`)
+  private variables: { [key: string]: string } = {
+    FRONTEND_URL: `${this.document.location.protocol}//${this.document.location.host}`
   };
 
   constructor(
@@ -14,20 +15,19 @@ export class EnvironmentService {
     private http: HttpClient
   ) { }
 
-  async getVariable(varName: string): Promise<string> {
-
-    if (this.variables[varName] != undefined) {
-      return this.variables[varName];
-    }
-
-    const requestUrl = `${await this.variables.FRONTEND_URL}/env/${varName}`;
-    const variable = (await this.http.get<string>(requestUrl, { observe: 'response' })
-      .toPromise())
-      .body;
-
-    this.variables[varName] = Promise.resolve(variable);
-    return this.variables[varName];
-
+  getVariable<T>(varName: string): Observable<string> {
+    return new Observable((subscriber) => {
+      if (this.variables[varName] != undefined) {
+        return subscriber.next(this.variables[varName]);
+      }
+      const requestUrl = `${this.variables.FRONTEND_URL}/env/${varName}`;
+      return this.http.get<string>(requestUrl)
+        .subscribe({
+          next: (variable) => {
+            this.variables[varName] = variable;
+            return subscriber.next(this.variables[varName]);
+          }
+        });
+    });
   }
-
 }
