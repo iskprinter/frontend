@@ -57,7 +57,7 @@ describe('StationTradingComponent', () => {
     spyEnvironmentService = TestBed.inject(EnvironmentService) as jasmine.SpyObj<EnvironmentService>;
 
     spyIskprinterApiService.getRegions.and.callFake(() => new Observable((subscriber) => {
-      subscriber.next({ regions: [] });
+      subscriber.next([]);
     }));
   }));
 

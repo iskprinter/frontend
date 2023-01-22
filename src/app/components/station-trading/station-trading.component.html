@@ -80,7 +80,7 @@
             </ng-container>
 
             <ng-container matColumnDef="volume">
-                <th mat-header-cell *matHeaderCellDef>Volume, Daily</th>
+                <th mat-header-cell *matHeaderCellDef>Volume, 5% of Inventory</th>
                 <td mat-cell *matCellDef="let deal">{{deal.volume.toLocaleString()}}</td>
             </ng-container>
 
@@ -96,15 +96,15 @@
                     2, maximumFractionDigits: 2})}}</td>
             </ng-container>
 
-            <ng-container matColumnDef="fees">
-                <th mat-header-cell *matHeaderCellDef>Fees, Total</th>
-                <td mat-cell *matCellDef="let deal">{{deal.fees.toLocaleString(undefined, {minimumFractionDigits: 2,
+            <ng-container matColumnDef="feesPerUnit">
+                <th mat-header-cell *matHeaderCellDef>Fees, Unit</th>
+                <td mat-cell *matCellDef="let deal">{{deal.feesPerUnit.toLocaleString(undefined, {minimumFractionDigits: 2,
                     maximumFractionDigits: 2})}}</td>
             </ng-container>
 
             <ng-container matColumnDef="profit">
                 <th mat-header-cell *matHeaderCellDef>Profit, Total</th>
-                <td mat-cell *matCellDef="let deal">{{deal.profit.toLocaleString(undefined, {minimumFractionDigits: 2,
+                <td mat-cell *matCellDef="let deal">{{(deal.volume * (deal.sellPrice - deal.buyPrice - deal.feesPerUnit)).toLocaleString(undefined, {minimumFractionDigits: 2,
                     maximumFractionDigits: 2})}}</td>
             </ng-container>
 

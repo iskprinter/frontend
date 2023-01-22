@@ -28,7 +28,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     };
     let response;
     try {
-      const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
+      const BACKEND_URL = await new Promise((resolve) => this.environment.getVariable('BACKEND_URL').subscribe(resolve));
       response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
     } catch (error) {
       if (error.status === 404) {
@@ -42,7 +42,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     return newAccessToken;
   }
 
-  async getLoginUrl(clientId: string): Promise<string> {
+  getLoginUrl(clientId: string): string {
     const responseType = 'code';
     const scopes = [
       'esi-assets.read_assets.v1',
@@ -149,7 +149,7 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
       proofType: 'authorizationCode',
       proof: authorizationCode
     };
-    const BACKEND_URL = await this.environment.getVariable('BACKEND_URL');
+    const BACKEND_URL = await new Promise((resolve) => this.environment.getVariable('BACKEND_URL').subscribe(resolve));
     const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
 
     const accessToken = response.body;

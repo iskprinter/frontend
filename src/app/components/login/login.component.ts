@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SimpleSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
+import { Observable } from 'rxjs';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
@@ -21,12 +22,13 @@ export class LoginComponent implements OnInit {
     public environmentService: EnvironmentService
   ) { }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.loginButtonDisabled = true;
-    const clientId = await this.environmentService.getVariable('CLIENT_ID');
-    const loginUrl = await this.authenticatorService.getLoginUrl(clientId);
-    this.loginUrl = loginUrl;
-    this.loginButtonDisabled = false;
+    this.environmentService.getVariable('CLIENT_ID').subscribe((clientId) => {
+      const loginUrl = this.authenticatorService.getLoginUrl(clientId);
+      this.loginUrl = loginUrl;
+      this.loginButtonDisabled = false;
+    });
   }
 
   // onSubmit(): void {
