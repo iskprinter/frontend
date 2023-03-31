@@ -31,28 +31,4 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  // onSubmit(): void {
-  //   this.http.post(`${location.origin}/api/tokens`, this.loginForm.value, { observe: 'response' })
-  //     .subscribe(
-  //       response => {
-  //       },
-  //       error => {
-  //         console.error(error);
-  //         const snackbar: MatSnackBarRef<SimpleSnackBar> = this.errorMessage.open(
-  //           error.error ? `${error.status}: ${error.error}` : error.message,
-  //           'Dismiss', {
-  //             duration: 8000,
-  //           });
-  //         snackbar.onAction().subscribe(() => {
-  //           snackbar.dismiss();
-  //         });
-  //       }
-  //     );
-
-  // }
-
-  openSnackBar(message: string, action: string): MatSnackBarRef<SimpleSnackBar> {
-    return;
-  }
-
 }

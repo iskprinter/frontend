@@ -1,23 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 
-import { CharacterService } from 'src/app/services/character/character.service';
-
 import { ProfileComponent } from './profile.component';
+import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
+import { IskprinterApiService } from 'src/app/services/iskprinter-api/iskprinter-api.service';
+import { Observable } from 'rxjs';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
   let fixture: ComponentFixture<ProfileComponent>;
-  let spyCharacterService: jasmine.SpyObj<CharacterService>;
+
+  let spyAuthenticatorService: jasmine.SpyObj<AuthenticatorService>;
+  let spyIskprinterApiService: jasmine.SpyObj<IskprinterApiService>;
 
   beforeEach(waitForAsync(() => {
-
-    spyCharacterService = jasmine.createSpyObj('CharacterService', [
-      'getCharacterFromToken',
-      'getLocationOfCharacter',
-      'getPortraitOfCharacter',
-      'getWalletBalanceOfCharacter'
-    ]);
 
     TestBed.configureTestingModule({
       declarations: [ProfileComponent],
@@ -26,14 +22,26 @@ describe('ProfileComponent', () => {
       ],
       providers: [
         {
-          provide: CharacterService,
-          useValue: spyCharacterService
-        }
-      ]
+          provide: AuthenticatorService,
+          useValue: jasmine.createSpyObj('AuthenticatorService', ['getCharacterFromToken'])
+        },
+        {
+          provide: IskprinterApiService,
+          useValue: jasmine.createSpyObj('IskprinterService', ['getCharacterPortrait'])
+        },
+      ],
     })
       .compileComponents();
 
-
+    spyAuthenticatorService = TestBed.inject(AuthenticatorService) as jasmine.SpyObj<AuthenticatorService>;
+    spyAuthenticatorService.getCharacterFromToken.and.returnValue({
+      characterId: 12345,
+      characterName: 'some-character-name',
+    });
+    spyIskprinterApiService = TestBed.inject(IskprinterApiService) as jasmine.SpyObj<IskprinterApiService>;
+    spyIskprinterApiService.getCharacterPortrait.and.returnValue(
+      new Observable((subscriber) => subscriber.next({ portraitUrl: 'some-portrait' }))
+    )
   }));
 
   beforeEach(() => {

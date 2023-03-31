@@ -6,6 +6,7 @@ import { AuthenticatorService } from 'src/app/services/authenticator/authenticat
 
 import { CodeReceiverComponent } from './code-receiver.component';
 import { Router, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
 
 describe('CodeReceiverComponent', () => {
   let component: CodeReceiverComponent;
@@ -13,7 +14,7 @@ describe('CodeReceiverComponent', () => {
 
   let authenticatorServiceStub: Partial<AuthenticatorService> = {
     isLoggedIn: () => true,
-    getAccessTokenFromAuthorizationCode: (authorizationCode: string) => Promise.resolve('some-access-token')
+    getTokensFromAuthorizationCode: (authorizationCode: string) => new Observable((subscriber) => subscriber.next('some-access-token'))
   };
 
   let routerStub: Partial<Router> = {

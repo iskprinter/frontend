@@ -18,24 +18,19 @@ export class CodeReceiverComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-
     const parsedUrl = this.router.parseUrl(this.router.url);
-    if (parsedUrl.queryParams.code) {
-
-      this.authenticatorService.getAccessTokenFromAuthorizationCode(parsedUrl.queryParams.code)
-        .then(() => this.router.navigate(['']))
-        .catch((error) => {
-          this.message = 'Authentication failed :('
-          this.spinnerVisible = false;
-          console.error(error);
-        });
-
-    } else {
+    if (!parsedUrl.queryParams.code) {
       this.message = 'Authentication failed :('
       this.spinnerVisible = false;
       console.error('No code found in URL.');
     }
-
+    this.authenticatorService.getTokensFromAuthorizationCode(parsedUrl.queryParams.code).subscribe({
+      next: () => this.router.navigate(['']),
+      error: (err) => {
+        this.message = 'Authentication failed :('
+        this.spinnerVisible = false;
+        console.error(err);
+      }
+    });
   }
-  
 }
