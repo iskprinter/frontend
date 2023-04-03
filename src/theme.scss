@@ -32,3 +32,9 @@ $theme: mat.define-dark-theme((
 a {
   color: mat.get-color-from-palette($accent);
 }
+
+.mat-badge-content {
+  background-color: mat.get-color-from-palette($accent);
+  color: white;
+  // font-weight: 600;
+}

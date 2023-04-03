@@ -56,11 +56,11 @@
 </form>
 
 <div class="align-content-center">
-    <button mat-raised-button class="spinner-with-text" color="accent" (click)="printIsk();"
+    <button mat-raised-button class="spinner-with-text" color="accent" (click)="recommendTrades();"
         [disabled]="requestInformer.isLoading | async">
         <div class="align-content-center">
             <mat-spinner *ngIf="requestInformer.isLoading | async" diameter="16" color="accent"></mat-spinner>
-            <span>Print ISK</span>
+            <span>Recommend Trades</span>
         </div>
     </button>
 </div>
@@ -112,52 +112,57 @@
 <mat-card>
     <mat-card-content>
 
-        <table mat-table [dataSource]="deals">
+        <table mat-table [dataSource]="recommendedTrades">
             <ng-container matColumnDef="typeId">
                 <th mat-header-cell *matHeaderCellDef>Type ID</th>
-                <td mat-cell *matCellDef="let deal">{{deal.typeId}}</td>
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.typeId}}</td>
             </ng-container>
 
             <ng-container matColumnDef="typeName">
                 <th mat-header-cell *matHeaderCellDef>Type Name</th>
-                <td mat-cell *matCellDef="let deal">{{deal.typeName}}</td>
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.typeName}}</td>
             </ng-container>
 
             <ng-container matColumnDef="volume">
-                <th mat-header-cell *matHeaderCellDef>Volume, 5% of Inventory</th>
-                <td mat-cell *matCellDef="let deal">{{deal.volume.toLocaleString()}}</td>
+                <th mat-header-cell *matHeaderCellDef>Volume to Buy</th>
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.action.buyVolume.toLocaleString()}}</td>
             </ng-container>
 
             <ng-container matColumnDef="buyPrice">
                 <th mat-header-cell *matHeaderCellDef>Buy Price, Unit</th>
-                <td mat-cell *matCellDef="let deal">{{deal.buyPrice.toLocaleString(undefined, {minimumFractionDigits: 2,
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.state.maxBuyPrice.toLocaleString(undefined,
+                    {minimumFractionDigits: 2,
                     maximumFractionDigits: 2})}}</td>
             </ng-container>
 
             <ng-container matColumnDef="sellPrice">
                 <th mat-header-cell *matHeaderCellDef>Sell Price, Unit</th>
-                <td mat-cell *matCellDef="let deal">{{deal.sellPrice.toLocaleString(undefined, {minimumFractionDigits:
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.state.minSellPrice.toLocaleString(undefined,
+                    {minimumFractionDigits:
                     2, maximumFractionDigits: 2})}}</td>
             </ng-container>
 
-            <ng-container matColumnDef="feesPerUnit">
+            <!-- <ng-container matColumnDef="feesPerUnit">
                 <th mat-header-cell *matHeaderCellDef>Fees, Unit</th>
-                <td mat-cell *matCellDef="let deal">{{deal.feesPerUnit.toLocaleString(undefined, {minimumFractionDigits: 2,
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.feesPerUnit.toLocaleString(undefined,
+                    {minimumFractionDigits: 2,
                     maximumFractionDigits: 2})}}</td>
-            </ng-container>
+            </ng-container> -->
 
             <ng-container matColumnDef="profit">
-                <th mat-header-cell *matHeaderCellDef>Profit, Total</th>
-                <td mat-cell *matCellDef="let deal">{{(deal.volume * (deal.sellPrice - deal.buyPrice - deal.feesPerUnit)).toLocaleString(undefined, {minimumFractionDigits: 2,
+                <th mat-header-cell *matHeaderCellDef>Expected Profit, Total</th>
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.profit.toLocaleString(undefined,
+                    {minimumFractionDigits: 2,
                     maximumFractionDigits: 2})}}</td>
             </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedDealColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedDealColumns;"></tr>
+            <tr mat-header-row *matHeaderRowDef="displayedRecommendedTradeColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedRecommendedTradeColumns;"></tr>
 
         </table>
 
-        <mat-paginator #dealPaginator [hidePageSize]="true" [pageSize]="8" showFirstLastButtons></mat-paginator>
+        <mat-paginator #recommendedTradePaginator [hidePageSize]="true" [pageSize]="8"
+            showFirstLastButtons></mat-paginator>
 
     </mat-card-content>
 </mat-card>

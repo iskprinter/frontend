@@ -1,5 +1,9 @@
 <mat-toolbar>
-  <a routerLink="/" style="text-decoration: none; color: inherit;"><span>{{title}}</span></a>
+  <a routerLink="/" style="text-decoration: none; color: inherit;">
+    <div matBadge="Beta" matBadgeOverlap="false" class="stretch-badge">
+      {{title}}
+    </div>
+  </a>
   <span style="flex: 1 1 auto;"></span>
   <button *ngIf="isLoggedIn()" mat-raised-button (click)="logOut()">
     Log Out
