@@ -44,7 +44,7 @@ describe('StationTradingComponent', () => {
         },
         {
           provide: IskprinterApiService,
-          useValue: jasmine.createSpyObj('DealService', ['getRegions'])
+          useValue: jasmine.createSpyObj('TradeRecommendationService', ['getRegions'])
         },
         {
           provide: EnvironmentService,

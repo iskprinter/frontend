@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 
-import { Deal } from 'src/app/entities/Deal';
+import { RecommendedTrade } from 'src/app/entities/RecommendedTrade';
 
 import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
 import { IskprinterApiService } from 'src/app/services/iskprinter-api/iskprinter-api.service';
@@ -30,10 +30,10 @@ export class StationTradingComponent implements OnInit {
   stationSelect: FormControl;
   structureSelect: FormControl;
 
-  @ViewChild('dealPaginator') dealPaginator: MatPaginator;
+  @ViewChild('recommendedTradePaginator') recommendedTradePaginator: MatPaginator;
   @ViewChild('orderPaginator') orderPaginator: MatPaginator;
 
-  deals: MatTableDataSource<Deal>;
+  recommendedTrades: MatTableDataSource<RecommendedTrade>;
   trades: MatTableDataSource<Trade>;
 
   regions: Region[];
@@ -41,13 +41,13 @@ export class StationTradingComponent implements OnInit {
   stations: Station[];
   structures: Structure[];
 
-  displayedDealColumns: string[] = [
+  displayedRecommendedTradeColumns: string[] = [
     // 'typeId',
     'typeName',
     'volume',
     'buyPrice',
     'sellPrice',
-    'feesPerUnit',
+    // 'feesPerUnit',
     'profit',
   ];
   displayedTradeColumns: string[] = [
@@ -143,32 +143,48 @@ export class StationTradingComponent implements OnInit {
     });
   }
 
-  async printIsk(): Promise<void> {
+  async recommendTrades(): Promise<void> {
     const stationId = this.stationSelect.value;
     const structureId = this.structureSelect.value;
     if (!stationId && !structureId) {
       throw new Error('Location needs to be set.');
     }
-    this._getDeals({ stationId, structureId }).subscribe({
-      next: (deals) => {
-        this.deals = new MatTableDataSource(deals.map((deal) => new Deal(deal.buyPrice, deal.feesPerUnit, deal.sellPrice, deal.typeName, deal.volume)));
-        this.deals.paginator = this.dealPaginator;
-        this.deals.paginator.pageIndex = 1;
+    this._getRecommendedTrades({ stationId, structureId }).subscribe({
+      next: (recommendedTrades) => {
+        this.recommendedTrades = new MatTableDataSource(recommendedTrades
+          .map((recommendedTrade) => new RecommendedTrade(
+            recommendedTrade.characterId,
+            recommendedTrade.timestamp,
+            recommendedTrade.recommendedTradeId,
+            recommendedTrade.typeId,
+            recommendedTrade.typeName,
+            recommendedTrade.action,
+            recommendedTrade.state,
+          ))
+          .sort((d1, d2) => d2.profit - d1.profit)
+        );
+        this.recommendedTrades.paginator = this.recommendedTradePaginator;
+        this.recommendedTrades.paginator.pageIndex = 1;
       }
     });
-
-    // Get past trades
-    // const characterId = this.authenticatorService.getCharacterFromToken().characterId;
-    // this.authenticatorService.withIskprinterReauth((accessToken) => {
-    //   return this.iskprinterApiService.getCharacterTrades(accessToken, characterId);
-    // }).subscribe({
-    //   next: (trades) => this.trades = new MatTableDataSource(trades.sort((t1, t2) => {
-    //     const t1Profit = (t1.sellVolume * t1.averageSellPrice - t1.buyVolume * t1.averageBuyPrice);
-    //     const t2Profit = (t2.sellVolume * t2.averageSellPrice - t2.buyVolume * t2.averageBuyPrice);
-    //     return t2Profit - t1Profit;
-    //   }))
-    // });
   }
+
+  async trackTrade(event: Event): Promise<void> {
+    console.log(event);
+  }
+
+  // Get past trades
+  // const characterId = this.authenticatorService.getCharacterFromToken().characterId;
+  // this.authenticatorService.withIskprinterReauth((accessToken) => {
+  //   return this.iskprinterApiService.getCharacterTrades(accessToken, characterId);
+  // }).subscribe({
+  //   next: (trades) => this.trades = new MatTableDataSource(trades.sort((t1, t2) => {
+  //     const t1Profit = (t1.sellVolume * t1.averageSellPrice - t1.buyVolume * t1.averageBuyPrice);
+  //     const t2Profit = (t2.sellVolume * t2.averageSellPrice - t2.buyVolume * t2.averageBuyPrice);
+  //     return t2Profit - t1Profit;
+  //   }))
+  // });
+  // }
 
   _getCharacters(): Observable<Character[]> {
     return this.authenticatorService.withIskprinterReauth((accessToken) => {
@@ -176,9 +192,9 @@ export class StationTradingComponent implements OnInit {
     });
   }
 
-  _getDeals({ stationId, structureId }: { stationId?: number, structureId?: number }): Observable<Deal[]> {
+  _getRecommendedTrades({ stationId, structureId }: { stationId?: number, structureId?: number }): Observable<RecommendedTrade[]> {
     return this.authenticatorService.withIskprinterReauth((accessToken) => {
-      return this.iskprinterApiService.getDeals(accessToken, { stationId, structureId });
+      return this.iskprinterApiService.getRecommendedTrades(accessToken, { stationId, structureId });
     });
   }
 

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { IskprinterApiService } from './iskprinter-api.service';
 
-describe('DealService', () => {
+describe('TradeRecommendationService', () => {
   let service: IskprinterApiService;
 
   beforeEach(() => {

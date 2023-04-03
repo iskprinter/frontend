@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Character } from 'src/app/entities/Character';
 import { Constellation } from 'src/app/entities/Constellation';
 
-import { Deal } from 'src/app/entities/Deal';
+import { RecommendedTrade } from 'src/app/entities/RecommendedTrade';
 import { Region } from 'src/app/entities/Region';
 import { Station } from 'src/app/entities/Station';
 import { Structure } from 'src/app/entities/Structure';
@@ -114,28 +114,24 @@ export class IskprinterApiService {
     });
   }
 
-  getDeals(accessToken: string, { stationId, structureId }: { stationId?: number, structureId?: number }): Observable<Deal[]> {
+  getRecommendedTrades(accessToken: string, { stationId, structureId }: { stationId?: number, structureId?: number }): Observable<RecommendedTrade[]> {
     return new Observable((subscriber) => {
       return this.environmentService.getVariable('BACKEND_URL').subscribe({
         error: (err) => subscriber.error(err),
         next: (backendUrl) => {
-          const params: { stationId?: number, structureId?: number } = {};
-          if (stationId) {
-            params['station-id'] = stationId;
-          }
-          if (structureId) {
-            params['structure-id'] = structureId;
-          }
-          return this.http.get<{ deals: Deal[] }>(
-            `${backendUrl}/v0/deals`,
+          return this.http.get<{ recommendedTrades: RecommendedTrade[] }>(
+            `${backendUrl}/v0/recommended-trades`,
             {
               headers: { authorization: `Bearer ${accessToken}` },
-              params
+              params: {
+                ...(stationId && { 'station-id': stationId }),
+                ...(structureId && { 'structure-id': structureId }),
+              }
             },
           ).subscribe({
             complete: () => subscriber.complete(),
             error: (err) => subscriber.error(err),
-            next: (body) => subscriber.next(body.deals),
+            next: (body) => subscriber.next(body.recommendedTrades),
           });
         }
       });
