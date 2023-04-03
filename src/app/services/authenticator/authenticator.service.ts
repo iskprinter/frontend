@@ -1,19 +1,16 @@
-import { HttpClient, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Buffer } from 'buffer/';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AuthenticatorInterface } from './authenticator.interface';
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
 import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class AuthenticatorService implements AuthenticatorInterface, CanActivate {
-
-  private retryCount = 3;
-
+export class AuthenticatorService implements CanActivate {
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -21,25 +18,34 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     private localStorage: LocalStorageService,
   ) { }
 
-  async _getAccessTokenFromPriorAccessToken(priorAccessToken: string): Promise<string> {
-    const body = {
-      proofType: 'priorAccessToken',
-      proof: priorAccessToken
-    };
-    let response;
-    try {
-      const BACKEND_URL = await new Promise((resolve) => this.environment.getVariable('BACKEND_URL').subscribe(resolve));
-      response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
-    } catch (error) {
-      if (error.status === 404) {
-        this.logOut();
-        throw new NoValidCredentialsError();
-      }
-      throw error;
-    }
-    const newAccessToken = response.body;
-    this._setAccessToken(newAccessToken);
-    return newAccessToken;
+  _refreshAccessToken(priorRefreshToken: string): Observable<string> {
+    return new Observable((subscriber) => {
+
+      this.environment.getVariable('BACKEND_URL').subscribe({
+        error: (err) => subscriber.error(err),
+        next: (BACKEND_URL) => {
+
+          const body = {
+            proofType: 'refreshToken',
+            proof: priorRefreshToken
+          };
+          this.http.post<{ accessToken: string, refreshToken: string }>(`${BACKEND_URL}/v0/tokens`, body).subscribe({
+            next: ({ accessToken, refreshToken }) => {
+              this._setAccessToken(accessToken);
+              this._setRefreshToken(refreshToken);
+              subscriber.next(accessToken);
+            },
+            error: (err) => {
+              if ([401, 403].includes(err.status)) {
+                this.logOut();
+                subscriber.error(new NoValidCredentialsError())
+              }
+              subscriber.error(err)
+            }
+          });
+        },
+      });
+    });
   }
 
   getLoginUrl(clientId: string): string {
@@ -78,8 +84,20 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     return accessToken;
   }
 
+  getRefreshToken(): string {
+    const refreshToken = this.localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new NoValidCredentialsError();
+    }
+    return refreshToken;
+  }
+
   _setAccessToken(accessToken: string): void {
     this.localStorage.setItem('accessToken', accessToken);
+  }
+
+  _setRefreshToken(refreshToken: string): void {
+    this.localStorage.setItem('refreshToken', refreshToken);
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
@@ -94,93 +112,76 @@ export class AuthenticatorService implements AuthenticatorInterface, CanActivate
     return !!this.localStorage.getItem('accessToken');
   }
 
-  async fetchLoginUrl(): Promise<string> {
-    const [
-      BACKEND_URL,
-      FRONTEND_URL
-    ] = await Promise.all([
-      this.environment.getVariable('BACKEND_URL'),
-      this.environment.getVariable('FRONTEND_URL')
-    ])
-    const params = { 'callback-url': `${FRONTEND_URL}/code-receiver` };
-    const response = await this.http.get<string>(`${BACKEND_URL}/login-url`, { observe: 'response', params }).toPromise();
-    return response.body;
-  }
-
-  logOut(): void {
-    this.localStorage.removeItem('accessToken');
-    this.router.navigate(['/login']);
-  }
-
-  eveRequest<R>(method: string, url: string, options?: any): Observable<R> {
-    if (!this.isLoggedIn()) {
-      this.logOut();
-      throw new NoValidCredentialsError();
-    }
-    return this._withReauthIfNecessary(() => {
-      for (let i = 0; i < this.retryCount; i += 1) {
-        try {
-          return this.http.request<R>(
-            method,
-            url,
-            {
-              body: options?.body,
-              headers: new HttpHeaders({
-                ...options?.headers,
-                Authorization: `Bearer ${this.getAccessToken()}`,
-              }),
-              params: options?.params,
-              responseType: 'json'
-            }
-          );
-        } catch (error) {
-          if (error instanceof HttpErrorResponse && error.status === 0) {
-            // Likely error due to absent CORS header on response. Retry.
-          } else {
-            throw error;
+  logOut() {
+    this.environment.getVariable('BACKEND_URL').subscribe({
+      next: (backendUrl) => {
+        const accessToken = this.getAccessToken();
+        this.http.delete(`${backendUrl}/v0/tokens`, {
+          headers: { authorization: `Bearer ${accessToken}` }
+        }).subscribe({
+          next: () => {
+            this.localStorage.removeItem('accessToken');
+            this.localStorage.removeItem('refreshToken');
+            this.router.navigate(['/login']);
           }
-        }
-      }
+        });
+      },
     });
   }
 
-  async getAccessTokenFromAuthorizationCode(authorizationCode: string): Promise<string> {
-    const body = {
-      proofType: 'authorizationCode',
-      proof: authorizationCode
+  getCharacterFromToken(): { characterId: number, characterName: string } {
+    const accessToken = this.getAccessToken();
+    const base64Url = accessToken.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jwtPayload = JSON.parse(Buffer.from(base64, 'base64').toString());
+    return {
+      characterId: jwtPayload.characterId,
+      characterName: jwtPayload.characterName,
     };
-    const BACKEND_URL = await new Promise((resolve) => this.environment.getVariable('BACKEND_URL').subscribe(resolve));
-    const response = await this.http.post<string>(`${BACKEND_URL}/tokens`, body, { observe: 'response' }).toPromise();
-
-    const accessToken = response.body;
-    this._setAccessToken(accessToken);
-    return accessToken;
   }
 
-  _withReauthIfNecessary<T>(doRequest: () => Observable<T>): Observable<T> {
+  getTokensFromAuthorizationCode(authorizationCode: string): Observable<string> {
     return new Observable((subscriber) => {
-      return doRequest().subscribe({
-        next: (body) => subscriber.next(body),
+      this.environment.getVariable('BACKEND_URL').subscribe({
+        error: (err) => subscriber.error(err),
+        next: (backendUrl) => {
+          const body = {
+            proofType: 'authorizationCode',
+            proof: authorizationCode
+          };
+          this.http.post<{ accessToken: string, refreshToken: string }>(`${backendUrl}/v0/tokens`, body).subscribe({
+            error: (err) => subscriber.error(err),
+            next: ({ accessToken, refreshToken }) => {
+              this._setAccessToken(accessToken);
+              this._setRefreshToken(refreshToken);
+              subscriber.next(accessToken);
+            }
+          });
+        }
+      })
+    });
+  }
+
+  withIskprinterReauth<T>(doRequest: (accessToken: string) => Observable<T>): Observable<T> {
+    return new Observable((subscriber) => {
+      return doRequest(this.getAccessToken()).subscribe({
+        complete: () => subscriber.complete(),
         error: (err) => {
           if (![401, 403].includes(err.status)) {
-            subscriber.error(err);
-            return;
+            return subscriber.error(err);
           }
-          this._getAccessTokenFromPriorAccessToken(this.getAccessToken())
-            .then(
-              () => doRequest().subscribe({
+          this._refreshAccessToken(this.getRefreshToken()).subscribe({
+            error: (err) => subscriber.error(err),
+            next: () => {
+              doRequest(this.getAccessToken()).subscribe({
+                complete: () => subscriber.complete(),
                 next: (body) => subscriber.next(body),
                 error: (err) => subscriber.error(err),
-              }),
-              (err) => {
-                if (err instanceof NoValidCredentialsError) {
-                  this.logOut();
-                  return;
-                }
-                subscriber.error(err);
-              }
-            )
-        }
+              });
+            },
+          });
+        },
+        next: (body) => subscriber.next(body),
       });
     });
   }

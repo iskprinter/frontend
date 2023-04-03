@@ -18,11 +18,13 @@ export class EnvironmentService {
   getVariable<T>(varName: string): Observable<string> {
     return new Observable((subscriber) => {
       if (this.variables[varName] != undefined) {
-        return subscriber.next(this.variables[varName]);
+        subscriber.next(this.variables[varName]);
+        subscriber.complete();
       }
       const requestUrl = `${this.variables.FRONTEND_URL}/env/${varName}`;
       return this.http.get<string>(requestUrl)
         .subscribe({
+          ...subscriber,
           next: (variable) => {
             this.variables[varName] = variable;
             return subscriber.next(this.variables[varName]);

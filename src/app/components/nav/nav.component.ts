@@ -23,9 +23,12 @@ export class NavComponent {
     this.title = this.titleService.getTitle();
   }
 
-  isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
-    .pipe(
-      map(result => result.matches)
-    );
+  isLoggedIn() {
+    return this.authenticatorService.isLoggedIn();
+  }
+
+  logOut() {
+    this.authenticatorService.logOut();
+  }
 
 }

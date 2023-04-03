@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 
 import { Character } from 'src/app/entities/Character';
 import { CharacterLocation } from 'src/app/entities/CharacterLocation'
-import { CharacterService } from 'src/app/services/character/character.service';
+import { AuthenticatorService } from 'src/app/services/authenticator/authenticator.service';
+import { IskprinterApiService } from 'src/app/services/iskprinter-api/iskprinter-api.service';
 
 @Component({
   selector: 'app-profile',
@@ -11,29 +12,35 @@ import { CharacterService } from 'src/app/services/character/character.service';
 })
 export class ProfileComponent implements OnInit {
 
-  character: Character;
-  characterPortrait: string;
+  characterId: number;
+  characterName: string;
+  characterPortraitUrl: string;
   characterLocation: CharacterLocation;
   characterWalletBalance: number;
 
   constructor(
-    public characterService: CharacterService,
+    public authenticatorService: AuthenticatorService,
+    public iskprinterApiService: IskprinterApiService,
   ) { }
 
   async ngOnInit(): Promise<void> {
-    this.character = await this.characterService.getCharacterFromToken();
-    const [
-      characterLocation,
-      characterPortrait,
-      characterWalletBalance
-    ] = await Promise.allSettled([
-      this.characterService.getLocationOfCharacter(this.character),
-      this.characterService.getPortraitOfCharacter(this.character),
-      this.characterService.getWalletBalanceOfCharacter(this.character)
-    ]);
-    this.characterLocation = characterLocation.status === 'fulfilled' ? characterLocation.value : undefined;
-    this.characterPortrait = characterPortrait.status === 'fulfilled' ? characterPortrait.value : undefined;
-    this.characterWalletBalance = characterWalletBalance.status === 'fulfilled' ? characterWalletBalance.value : undefined;
+    const character = this.authenticatorService.getCharacterFromToken();
+    this.characterId = character.characterId;
+    this.characterName = character.characterName;
+
+    this.iskprinterApiService.getCharacterPortrait(this.characterId).subscribe({
+      next: ({portraitUrl}) => this.characterPortraitUrl = portraitUrl
+    });
+
+  //   const [
+  //     characterLocation,
+  //     characterWalletBalance
+  //   ] = await Promise.allSettled([
+  //     this.characterService.getLocationOfCharacter(this.character),
+  //     this.characterService.getWalletBalanceOfCharacter(this.character)
+  //   ]);
+  //   this.characterLocation = characterLocation.status === 'fulfilled' ? characterLocation.value : undefined;
+  //   this.characterWalletBalance = characterWalletBalance.status === 'fulfilled' ? characterWalletBalance.value : undefined;
   }
 
 }

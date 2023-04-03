@@ -9,11 +9,12 @@ import { IskprinterApiService } from 'src/app/services/iskprinter-api/iskprinter
 import { RequestInformerService } from 'src/app/services/request-informer/request-informer.service';
 import { LocalStorageService } from 'src/app/services/local-storage/local-storage.service';
 import { Region } from 'src/app/entities/Region';
-import { MatSelect } from '@angular/material/select';
 import { System } from 'src/app/entities/System';
 import { Station } from 'src/app/entities/Station';
 import { Structure } from 'src/app/entities/Structure';
 import { Observable } from 'rxjs';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Trade } from 'src/app/entities/Trade';
 import { Character } from 'src/app/entities/Character';
 
 @Component({
@@ -23,13 +24,18 @@ import { Character } from 'src/app/entities/Character';
 })
 export class StationTradingComponent implements OnInit {
 
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild('regionSelect') regionSelect: MatSelect;
-  @ViewChild('systemSelect') systemSelect: MatSelect;
-  @ViewChild('stationSelect') stationSelect: MatSelect;
-  @ViewChild('structureSelect') structureSelect: MatSelect;
+  stationTradingForm: FormGroup;
+  regionSelect: FormControl;
+  systemSelect: FormControl;
+  stationSelect: FormControl;
+  structureSelect: FormControl;
+
+  @ViewChild('dealPaginator') dealPaginator: MatPaginator;
+  @ViewChild('orderPaginator') orderPaginator: MatPaginator;
 
   deals: MatTableDataSource<Deal>;
+  trades: MatTableDataSource<Trade>;
+
   regions: Region[];
   systems: System[];
   stations: Station[];
@@ -44,6 +50,14 @@ export class StationTradingComponent implements OnInit {
     'feesPerUnit',
     'profit',
   ];
+  displayedTradeColumns: string[] = [
+    'typeName',
+    'buyVolume',
+    'averageBuyPrice',
+    'sellVolume',
+    'averageSellPrice',
+    'profit',
+  ];
 
   constructor(
     public authenticatorService: AuthenticatorService,
@@ -53,50 +67,78 @@ export class StationTradingComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this._getRegions().subscribe((regions) => {
-      this.regions = regions.sort((r1, r2) => r1.name.localeCompare(r2.name))
-    })
+    this.regionSelect = new FormControl();
+    this.systemSelect = new FormControl();
+    this.stationSelect = new FormControl();
+    this.structureSelect = new FormControl();
+    this.regionSelect.disable()
+    this.systemSelect.disable()
+    this.stationSelect.disable()
+    this.structureSelect.disable()
+    this.stationTradingForm = new FormGroup({
+      regionSelect: this.regionSelect,
+      systemSelect: this.systemSelect,
+      stationSelect: this.stationSelect,
+      structureSelect: this.structureSelect,
+    });
+    this._getRegions().subscribe({
+      next: (regions) => this.regions = regions.sort((r1, r2) => r1.name.localeCompare(r2.name)),
+      complete: () => this.regionSelect.enable(),
+    });
   }
 
   onRegionSelected(event: Event) {
     const regionId = this.regionSelect.value;
-    return this._getSystems(regionId).subscribe((systems) => {
-      this.systems = systems.sort((s1, s2) => s1.name.localeCompare(s2.name));
+    return this._getSystems(regionId).subscribe({
+      next: (systems) => {
+        this.systems = systems.sort((s1, s2) => s1.name.localeCompare(s2.name));
+      },
+      complete: () => this.systemSelect.enable(),
     });
   }
 
   async onSystemSelected(event: Event) {
     const systemId = this.systemSelect.value;
-    this._getStations({ systemId }).subscribe((stations) => {
-      this.stations = stations.sort((s1, s2) => s1.name.localeCompare(s2.name));
+    this._getStations({ systemId }).subscribe({
+      next: (stations) => {
+        this.stations = stations.sort((s1, s2) => s1.name.localeCompare(s2.name));
+      },
+      complete: () => this.stationSelect.enable(),
     });
-    this._getStructures({ systemId }).subscribe((structures) => {
-      this.structures = structures.sort((s1, s2) => s1.name.localeCompare(s2.name))
+    this._getStructures({ systemId }).subscribe({
+      next: (structures) => {
+        this.structures = structures.sort((s1, s2) => s1.name.localeCompare(s2.name));
+      },
+      complete: () => this.structureSelect.enable(),
     });
   }
 
   onStationSelected(event: Event) {
-    this.structureSelect.writeValue(undefined);
+    this.structureSelect.setValue(undefined);
   }
 
   onStructureSelected(event: Event) {
-    this.stationSelect.writeValue(undefined);
+    this.stationSelect.setValue(undefined);
   }
 
   useCurrentLocation() {
-    this.iskprinterApiService.getCharacters().subscribe((characters) => {
+    return this._getCharacters().subscribe((characters) => {
       const character = characters[0];
       if (character.location.station_id) {
-        this.iskprinterApiService.getStation(character.location.station_id).subscribe((station) => {
-          this.stations = [station];
-          this.stationSelect.value = character.location.station_id;
+        this._getStation(character.location.station_id).subscribe({
+          next: (station) => {
+            this.stations = [station];
+            this.stationSelect.setValue(character.location.station_id)
+          }
         });
       }
       if (character.location.structure_id) {
-        this.iskprinterApiService.getStructure(character.location.structure_id).subscribe((structure) => {
+        this.authenticatorService.withIskprinterReauth((accessToken) => {
+          return this.iskprinterApiService.getStructure(accessToken, character.location.structure_id);
+        }).subscribe((structure) => {
           this.structures = [structure];
-          this.structureSelect.value = character.location.structure_id;
-        })
+          this.structureSelect.setValue(character.location.structure_id);
+        });
       }
     });
   }
@@ -107,67 +149,65 @@ export class StationTradingComponent implements OnInit {
     if (!stationId && !structureId) {
       throw new Error('Location needs to be set.');
     }
-    this.iskprinterApiService.getDeals({ stationId, structureId }).subscribe((deals) => {
-      this.deals = new MatTableDataSource(deals.map((deal) => new Deal(deal.buyPrice, deal.feesPerUnit, deal.sellPrice, deal.typeName, deal.volume)));
-      this.deals.paginator = this.paginator;
-      this.deals.paginator.pageIndex = 1;
+    this._getDeals({ stationId, structureId }).subscribe({
+      next: (deals) => {
+        this.deals = new MatTableDataSource(deals.map((deal) => new Deal(deal.buyPrice, deal.feesPerUnit, deal.sellPrice, deal.typeName, deal.volume)));
+        this.deals.paginator = this.dealPaginator;
+        this.deals.paginator.pageIndex = 1;
+      }
+    });
+
+    // Get past trades
+    // const characterId = this.authenticatorService.getCharacterFromToken().characterId;
+    // this.authenticatorService.withIskprinterReauth((accessToken) => {
+    //   return this.iskprinterApiService.getCharacterTrades(accessToken, characterId);
+    // }).subscribe({
+    //   next: (trades) => this.trades = new MatTableDataSource(trades.sort((t1, t2) => {
+    //     const t1Profit = (t1.sellVolume * t1.averageSellPrice - t1.buyVolume * t1.averageBuyPrice);
+    //     const t2Profit = (t2.sellVolume * t2.averageSellPrice - t2.buyVolume * t2.averageBuyPrice);
+    //     return t2Profit - t1Profit;
+    //   }))
+    // });
+  }
+
+  _getCharacters(): Observable<Character[]> {
+    return this.authenticatorService.withIskprinterReauth((accessToken) => {
+      return this.iskprinterApiService.getCharacters(accessToken);
     });
   }
 
-  _getRegions({ systemId }: { systemId?: number} = {}): Observable<Region[]> {
-    return new Observable((subscriber) => {
-      this.iskprinterApiService.getRegions({ systemId }).subscribe({
-        next: (regions) => {
-          subscriber.next(regions);
-          subscriber.complete
-        }
-      });
+  _getDeals({ stationId, structureId }: { stationId?: number, structureId?: number }): Observable<Deal[]> {
+    return this.authenticatorService.withIskprinterReauth((accessToken) => {
+      return this.iskprinterApiService.getDeals(accessToken, { stationId, structureId });
     });
+  }
+
+  _getRegions({ systemId }: { systemId?: number } = {}): Observable<Region[]> {
+    return this.iskprinterApiService.getRegions({ systemId });
   }
 
   _getStation(stationId: number): Observable<Station> {
-    return new Observable((subscriber) => {
-      return this.iskprinterApiService.getStation(stationId).subscribe((station) => {
-        subscriber.next(station);
-        subscriber.complete();
-      });
-    });
+    return this.iskprinterApiService.getStation(stationId);
   }
 
   _getStations({ systemId }: { systemId?: number } = {}): Observable<Station[]> {
-    return new Observable((subscriber) => {
-      return this.iskprinterApiService.getStations({ systemId }).subscribe((stations) => {
-        subscriber.next(stations);
-        subscriber.complete();
-      });
-    });
+    return this.iskprinterApiService.getStations({ systemId });
   }
 
   _getStructure(structureId: number): Observable<Structure> {
-    return new Observable((subscriber) => {
-      return this.iskprinterApiService.getStructure(structureId).subscribe((structure) => {
-        subscriber.next(structure);
-        subscriber.complete();
-      });
+    return this.authenticatorService.withIskprinterReauth((accessToken) => {
+      return this.iskprinterApiService.getStructure(accessToken, structureId);
     });
   }
 
   _getStructures({ systemId }: { systemId?: number } = {}): Observable<Structure[]> {
-    return new Observable((subscriber) => {
-      return this.iskprinterApiService.getStructures({ systemId }).subscribe((structures) => {
-        subscriber.next(structures);
-        subscriber.complete();
-      });
+    return this.authenticatorService.withIskprinterReauth((accessToken) => {
+      return this.iskprinterApiService.getStructures(accessToken, { systemId });
     });
   }
 
   _getSystems(regionId: number): Observable<System[]> {
-    return new Observable((subscriber) => {
-      return this.iskprinterApiService.getSystems(regionId).subscribe((systems) => {
-        subscriber.next(systems);
-        subscriber.complete();
-      });
-    });
+    return this.iskprinterApiService.getSystems(regionId);
   }
 
 }

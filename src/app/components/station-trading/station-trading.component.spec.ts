@@ -12,7 +12,8 @@ import { StationTradingComponent } from './station-trading.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Observable, Subscriber } from 'rxjs';
+import { Observable } from 'rxjs';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('StationTradingComponent', () => {
   let component: StationTradingComponent;
@@ -33,7 +34,8 @@ describe('StationTradingComponent', () => {
         MatPaginatorModule,
         MatProgressSpinnerModule,
         MatSelectModule,
-        MatTableModule
+        MatTableModule,
+        ReactiveFormsModule,
       ],
       providers: [
         {

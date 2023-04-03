@@ -1,15 +1,15 @@
 <mat-card>
     <mat-card-header>
         <mat-card-title-group>
-            <img mat-card-lg-image src="{{characterPortrait}}">
-            <mat-card-title>{{character?.name}}</mat-card-title>
-            <mat-card-subtitle>ID: {{character?.id}}</mat-card-subtitle>
-            <mat-card-subtitle>Region: {{characterLocation?.regionName}}</mat-card-subtitle>
+            <img mat-card-lg-image src="{{characterPortraitUrl}}">
+            <mat-card-title>{{characterName}}</mat-card-title>
+            <mat-card-subtitle>ID: {{characterId}}</mat-card-subtitle>
+            <!-- <mat-card-subtitle>Region: {{characterLocation?.regionName}}</mat-card-subtitle>
             <mat-card-subtitle>Constellation: {{characterLocation?.constellationName}}</mat-card-subtitle>
             <mat-card-subtitle>Solar System: {{characterLocation?.solarSystemName}}</mat-card-subtitle>
             <mat-card-subtitle *ngIf="characterLocation?.stationId">Station ID: {{characterLocation?.stationId || 'None'}}</mat-card-subtitle>
             <mat-card-subtitle *ngIf="characterLocation?.structureName">Structure: {{characterLocation?.structureName || 'None'}}</mat-card-subtitle>
-            <mat-card-subtitle> Balance: {{characterWalletBalance?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}} ISK</mat-card-subtitle>
+            <mat-card-subtitle> Balance: {{characterWalletBalance?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}} ISK</mat-card-subtitle> -->
         </mat-card-title-group>
     </mat-card-header>
 </mat-card>
