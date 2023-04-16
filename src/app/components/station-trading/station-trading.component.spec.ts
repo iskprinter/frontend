@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 
@@ -26,7 +26,10 @@ describe('StationTradingComponent', () => {
   beforeEach(waitForAsync(() => {
 
     TestBed.configureTestingModule({
-      declarations: [StationTradingComponent],
+      declarations: [
+        StationTradingComponent,
+        MatPaginator,
+      ],
       imports: [
         BrowserAnimationsModule,
         MatCardModule,
@@ -40,7 +43,7 @@ describe('StationTradingComponent', () => {
       providers: [
         {
           provide: AuthenticatorService,
-          useValue: jasmine.createSpyObj('AuthenticatorService', ['eveRequest'])
+          useValue: jasmine.createSpyObj('AuthenticatorService', ['withIskprinterReauth'])
         },
         {
           provide: IskprinterApiService,
@@ -58,6 +61,9 @@ describe('StationTradingComponent', () => {
     spyIskprinterApiService = TestBed.inject(IskprinterApiService) as jasmine.SpyObj<IskprinterApiService>;
     spyEnvironmentService = TestBed.inject(EnvironmentService) as jasmine.SpyObj<EnvironmentService>;
 
+    spyAuthenticatorService.withIskprinterReauth.and.callFake(() => new Observable((subscriber) => {
+      subscriber.next([] as unknown as any);
+    }));
     spyIskprinterApiService.getRegions.and.callFake(() => new Observable((subscriber) => {
       subscriber.next([]);
     }));

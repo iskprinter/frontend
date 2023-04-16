@@ -20,6 +20,7 @@ export class EnvironmentService {
       if (this.variables[varName] != undefined) {
         subscriber.next(this.variables[varName]);
         subscriber.complete();
+        return;
       }
       const requestUrl = `${this.variables.FRONTEND_URL}/env/${varName}`;
       return this.http.get<string>(requestUrl)

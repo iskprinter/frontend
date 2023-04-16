@@ -56,14 +56,17 @@
 </form>
 
 <div class="align-content-center">
-    <button mat-raised-button class="spinner-with-text" color="accent" (click)="recommendTrades();"
-        [disabled]="requestInformer.isLoading | async">
+    <button mat-raised-button class="spinner-with-text" color="accent" (click)="createRecommendedTrade();"
+        [disabled]="disableRecommendTradeButton || (requestInformer.isLoading | async)">
         <div class="align-content-center">
-            <mat-spinner *ngIf="requestInformer.isLoading | async" diameter="16" color="accent"></mat-spinner>
-            <span>Recommend Trades</span>
+            <mat-spinner *ngIf="disableRecommendTradeButton || (requestInformer.isLoading | async)" diameter="16"
+                color="accent"></mat-spinner>
+            <span>Recommend a Trade</span>
         </div>
     </button>
 </div>
+
+<h2 class="status" *ngIf="status">{{status}}</h2>
 
 <!-- <mat-card>
     <mat-card-content>
@@ -113,9 +116,9 @@
     <mat-card-content>
 
         <table mat-table [dataSource]="recommendedTrades">
-            <ng-container matColumnDef="typeId">
-                <th mat-header-cell *matHeaderCellDef>Type ID</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.typeId}}</td>
+            <ng-container matColumnDef="dateCreated">
+                <th mat-header-cell *matHeaderCellDef>Date Created</th>
+                <td mat-cell *matCellDef="let recommendedTrade">{{ recommendedTrade.getDateCreated().toLocaleDateString() }} {{ recommendedTrade.getDateCreated().toLocaleTimeString() }}</td>
             </ng-container>
 
             <ng-container matColumnDef="typeName">
@@ -125,21 +128,22 @@
 
             <ng-container matColumnDef="volume">
                 <th mat-header-cell *matHeaderCellDef>Volume to Buy</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.action.buyVolume.toLocaleString()}}</td>
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.action.buyVolume.toLocaleString()}}
+                </td>
             </ng-container>
 
             <ng-container matColumnDef="buyPrice">
                 <th mat-header-cell *matHeaderCellDef>Buy Price, Unit</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.state.maxBuyPrice.toLocaleString(undefined,
-                    {minimumFractionDigits: 2,
-                    maximumFractionDigits: 2})}}</td>
+                <td mat-cell *matCellDef="let recommendedTrade">
+                    {{recommendedTrade.getMaxBuyPrice().toLocaleString(undefined, { minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 }) }}</td>
             </ng-container>
 
             <ng-container matColumnDef="sellPrice">
                 <th mat-header-cell *matHeaderCellDef>Sell Price, Unit</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.state.minSellPrice.toLocaleString(undefined,
-                    {minimumFractionDigits:
-                    2, maximumFractionDigits: 2})}}</td>
+                <td mat-cell *matCellDef="let recommendedTrade">
+                    {{recommendedTrade.getMinSellPrice().toLocaleString(undefined, {minimumFractionDigits: 2,
+                    maximumFractionDigits: 2}) }}</td>
             </ng-container>
 
             <!-- <ng-container matColumnDef="feesPerUnit">

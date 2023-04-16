@@ -13,12 +13,15 @@ export class NotifierComponent implements ErrorHandler {
   ) { }
 
   handleError(error: any): void {
-    console.error(error);
-    const errorMessages: string = error.message.match(/(Error: .*)\n/);
-    if (errorMessages && errorMessages.length > 0) {
-      this.openSnackBar(errorMessages[1].replace(/\n/, ' '))
-    } else {
-      this.openSnackBar(error.message);
+    try {
+      const errorMessages: string = error.message.match(/(Error: .*)\n/);
+      if (errorMessages && errorMessages.length > 0) {
+        this.openSnackBar(errorMessages[1].replace(/\n/, ' '))
+      } else {
+        this.openSnackBar(error.message);
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
