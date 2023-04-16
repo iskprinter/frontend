@@ -24,6 +24,8 @@ import { Character } from 'src/app/entities/Character';
 })
 export class StationTradingComponent implements OnInit {
 
+  disableRecommendTradeButton = false;
+
   stationTradingForm: FormGroup;
   regionSelect: FormControl;
   systemSelect: FormControl;
@@ -31,10 +33,10 @@ export class StationTradingComponent implements OnInit {
   structureSelect: FormControl;
 
   @ViewChild('recommendedTradePaginator') recommendedTradePaginator: MatPaginator;
-  @ViewChild('orderPaginator') orderPaginator: MatPaginator;
 
-  recommendedTrades: MatTableDataSource<RecommendedTrade>;
+  recommendedTrades: MatTableDataSource<RecommendedTrade> = new MatTableDataSource([]);
   trades: MatTableDataSource<Trade>;
+  status: string;
 
   regions: Region[];
   systems: System[];
@@ -42,7 +44,7 @@ export class StationTradingComponent implements OnInit {
   structures: Structure[];
 
   displayedRecommendedTradeColumns: string[] = [
-    // 'typeId',
+    'dateCreated',
     'typeName',
     'volume',
     'buyPrice',
@@ -84,6 +86,25 @@ export class StationTradingComponent implements OnInit {
     this._getRegions().subscribe({
       next: (regions) => this.regions = regions.sort((r1, r2) => r1.name.localeCompare(r2.name)),
       complete: () => this.regionSelect.enable(),
+    });
+    this._getRecommendedTrades().subscribe({
+      next: (recommendedTrades) => {
+        this.recommendedTrades = new MatTableDataSource(
+          recommendedTrades
+            .map((recommendedTrade) => new RecommendedTrade(
+              recommendedTrade.action,
+              recommendedTrade.characterId,
+              recommendedTrade.dateCreated,
+              recommendedTrade.recommendedTradeId,
+              recommendedTrade.state,
+              recommendedTrade.status,
+              recommendedTrade.typeId,
+              recommendedTrade.typeName,
+            ))
+            .sort((t1, t2) => new Date(t2.dateCreated).getTime() - new Date(t1.dateCreated).getTime())
+        );
+        this.recommendedTrades.paginator = this.recommendedTradePaginator;
+      }
     });
   }
 
@@ -143,34 +164,54 @@ export class StationTradingComponent implements OnInit {
     });
   }
 
-  async recommendTrades(): Promise<void> {
+  async createRecommendedTrade(): Promise<void> {
     const stationId = this.stationSelect.value;
     const structureId = this.structureSelect.value;
     if (!stationId && !structureId) {
       throw new Error('Location needs to be set.');
     }
-    this._getRecommendedTrades({ stationId, structureId }).subscribe({
-      next: (recommendedTrades) => {
-        this.recommendedTrades = new MatTableDataSource(recommendedTrades
-          .map((recommendedTrade) => new RecommendedTrade(
-            recommendedTrade.characterId,
-            recommendedTrade.timestamp,
-            recommendedTrade.recommendedTradeId,
-            recommendedTrade.typeId,
-            recommendedTrade.typeName,
-            recommendedTrade.action,
-            recommendedTrade.state,
-          ))
-          .sort((d1, d2) => d2.profit - d1.profit)
-        );
-        this.recommendedTrades.paginator = this.recommendedTradePaginator;
-        this.recommendedTrades.paginator.pageIndex = 1;
+    this.disableRecommendTradeButton = true;
+    this._createRecommendedTrade({ stationId, structureId }).subscribe({
+      error: (err) => {
+        this.disableRecommendTradeButton = false;
+      },
+      next: (recommendedTrade) => {
+        this.status = recommendedTrade.status;
+        const interval = setInterval(() => {
+
+          this._getRecommendedTrade(recommendedTrade.recommendedTradeId).subscribe({
+            next: (recommendedTrade) => {
+              this.status = recommendedTrade.status;
+
+              if (recommendedTrade.status === 'Complete') {
+                this.disableRecommendTradeButton = false;
+                clearInterval(interval);
+
+                this.recommendedTrades = new MatTableDataSource([
+                  recommendedTrade,
+                  ...this.recommendedTrades.data,
+                ]
+                  .map((recommendedTrade) => new RecommendedTrade(
+                    recommendedTrade.action,
+                    recommendedTrade.characterId,
+                    recommendedTrade.dateCreated,
+                    recommendedTrade.recommendedTradeId,
+                    recommendedTrade.state,
+                    recommendedTrade.status,
+                    recommendedTrade.typeId,
+                    recommendedTrade.typeName,
+                  ))
+                  .sort((t1, t2) => new Date(t2.dateCreated).getTime() - new Date(t1.dateCreated).getTime())
+                );
+                this.recommendedTrades.paginator = this.recommendedTradePaginator;
+                this.recommendedTrades.paginator.pageIndex = 1;
+              }
+
+            }
+          });
+        }, 4000);
       }
     });
-  }
-
-  async trackTrade(event: Event): Promise<void> {
-    console.log(event);
   }
 
   // Get past trades
@@ -186,15 +227,27 @@ export class StationTradingComponent implements OnInit {
   // });
   // }
 
+  _createRecommendedTrade({ stationId, structureId }: { stationId?: number, structureId?: number }): Observable<RecommendedTrade> {
+    return this.authenticatorService.withIskprinterReauth((accessToken) => {
+      return this.iskprinterApiService.createRecommendedTrade(accessToken, { stationId, structureId });
+    });
+  }
+
   _getCharacters(): Observable<Character[]> {
     return this.authenticatorService.withIskprinterReauth((accessToken) => {
       return this.iskprinterApiService.getCharacters(accessToken);
     });
   }
 
-  _getRecommendedTrades({ stationId, structureId }: { stationId?: number, structureId?: number }): Observable<RecommendedTrade[]> {
+  _getRecommendedTrade(recommendedTradeId: string): Observable<RecommendedTrade> {
     return this.authenticatorService.withIskprinterReauth((accessToken) => {
-      return this.iskprinterApiService.getRecommendedTrades(accessToken, { stationId, structureId });
+      return this.iskprinterApiService.getRecommendedTrade(accessToken, recommendedTradeId);
+    });
+  }
+
+  _getRecommendedTrades(): Observable<RecommendedTrade[]> {
+    return this.authenticatorService.withIskprinterReauth((accessToken) => {
+      return this.iskprinterApiService.getRecommendedTrades(accessToken);
     });
   }
 

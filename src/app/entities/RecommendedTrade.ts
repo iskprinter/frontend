@@ -1,22 +1,35 @@
 export class RecommendedTrade {
   constructor(
-    public characterId: number,
-    public timestamp: number,
-    public recommendedTradeId: string,
-    public typeId: number,
-    public typeName: string,
     public action: {
       buyVolume: number,
     },
+    public characterId: number,
+    public dateCreated: Date,
+    public recommendedTradeId: string,
     public state: {
-      maxBuyPrice: number,
+      maxBuyPrice?: number,
       buyVolume: number,
-      minSellPrice: number,
+      minSellPrice?: number,
       sellVolume: number,
     },
+    public status: string,
+    public typeId: number,
+    public typeName: string,
   ) { }
 
+  getDateCreated(): Date {
+    return new Date(this.dateCreated);
+  }
+
+  getMaxBuyPrice(): number {
+    return this.state.maxBuyPrice || 0;
+  }
+
+  getMinSellPrice(): number {
+    return this.state.minSellPrice || Infinity;
+  }
+
   get profit() {
-    return this.action.buyVolume * (this.state.minSellPrice - this.state.maxBuyPrice);
+    return this.action.buyVolume * ((this.state.minSellPrice || Infinity) - (this.state.maxBuyPrice || 0));
   }
 }

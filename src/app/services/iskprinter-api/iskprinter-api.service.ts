@@ -22,6 +22,28 @@ export class IskprinterApiService {
     private environmentService: EnvironmentService,
   ) { }
 
+  createRecommendedTrade(accessToken: string, { stationId, structureId }: { stationId?: number, structureId?: number }): Observable<RecommendedTrade> {
+    return new Observable((subscriber) => {
+      return this.environmentService.getVariable('BACKEND_URL').subscribe({
+        error: (err) => subscriber.error(err),
+        next: (backendUrl) => {
+          return this.http.post<{ recommendedTrade: RecommendedTrade }>(
+            `${backendUrl}/v0/recommended-trades`,
+            {
+              ...(stationId && { stationId }),
+              ...(structureId && { structureId }),
+            },
+            { headers: { authorization: `Bearer ${accessToken}` } },
+          ).subscribe({
+            complete: () => subscriber.complete(),
+            error: (err) => subscriber.error(err),
+            next: (body) => subscriber.next(body.recommendedTrade),
+          });
+        }
+      });
+    });
+  }
+
   getCharacters(accessToken: string): Observable<Character[]> {
     return new Observable((subscriber) => {
       return this.environmentService.getVariable('BACKEND_URL').subscribe({
@@ -114,20 +136,32 @@ export class IskprinterApiService {
     });
   }
 
-  getRecommendedTrades(accessToken: string, { stationId, structureId }: { stationId?: number, structureId?: number }): Observable<RecommendedTrade[]> {
+  getRecommendedTrade(accessToken: string, recommendedTradeId: string): Observable<RecommendedTrade> {
+    return new Observable((subscriber) => {
+      return this.environmentService.getVariable('BACKEND_URL').subscribe({
+        error: (err) => subscriber.error(err),
+        next: (backendUrl) => {
+          return this.http.get<{ recommendedTrade: RecommendedTrade }>(
+            `${backendUrl}/v0/recommended-trades/${recommendedTradeId}`,
+            { headers: { authorization: `Bearer ${accessToken}` } },
+          ).subscribe({
+            complete: () => subscriber.complete(),
+            error: (err) => subscriber.error(err),
+            next: (body) => subscriber.next(body.recommendedTrade),
+          });
+        }
+      });
+    });
+  }
+
+  getRecommendedTrades(accessToken: string): Observable<RecommendedTrade[]> {
     return new Observable((subscriber) => {
       return this.environmentService.getVariable('BACKEND_URL').subscribe({
         error: (err) => subscriber.error(err),
         next: (backendUrl) => {
           return this.http.get<{ recommendedTrades: RecommendedTrade[] }>(
             `${backendUrl}/v0/recommended-trades`,
-            {
-              headers: { authorization: `Bearer ${accessToken}` },
-              params: {
-                ...(stationId && { 'station-id': stationId }),
-                ...(structureId && { 'structure-id': structureId }),
-              }
-            },
+            { headers: { authorization: `Bearer ${accessToken}` } },
           ).subscribe({
             complete: () => subscriber.complete(),
             error: (err) => subscriber.error(err),

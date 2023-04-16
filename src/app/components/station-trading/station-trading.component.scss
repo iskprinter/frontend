@@ -28,12 +28,16 @@ table {
     // height: 250px;
 }
 
-.flex-container > div {
+.flex-container>div {
     flex: none;
     // background: gray;
     box-sizing: border-box;
     // border: 4px solid white;
     margin: 16px;
+}
+
+.status {
+    text-align: center;
 }
 
 .vertical-line {
