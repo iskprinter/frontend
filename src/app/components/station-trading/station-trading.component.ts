@@ -180,6 +180,11 @@ export class StationTradingComponent implements OnInit {
         const interval = setInterval(() => {
 
           this._getRecommendedTrade(recommendedTrade.recommendedTradeId).subscribe({
+            error: (err) => {
+              this.status = recommendedTrade.status;
+              clearInterval(interval);
+              console.error(err);
+            },
             next: (recommendedTrade) => {
               this.status = recommendedTrade.status;
 
