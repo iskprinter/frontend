@@ -123,12 +123,12 @@
 
             <ng-container matColumnDef="typeName">
                 <th mat-header-cell *matHeaderCellDef>Type Name</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.typeName}}</td>
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.getTypeName()}}</td>
             </ng-container>
 
             <ng-container matColumnDef="volume">
                 <th mat-header-cell *matHeaderCellDef>Volume to Buy</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.action.buyVolume.toLocaleString()}}
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.getBuyVolume().toLocaleString()}}
                 </td>
             </ng-container>
 
@@ -155,7 +155,7 @@
 
             <ng-container matColumnDef="profit">
                 <th mat-header-cell *matHeaderCellDef>Expected Profit, Total</th>
-                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.profit.toLocaleString(undefined,
+                <td mat-cell *matCellDef="let recommendedTrade">{{recommendedTrade.getProfit().toLocaleString(undefined,
                     {minimumFractionDigits: 2,
                     maximumFractionDigits: 2})}}</td>
             </ng-container>
