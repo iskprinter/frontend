@@ -92,12 +92,12 @@ export class StationTradingComponent implements OnInit {
         this.recommendedTrades = new MatTableDataSource(
           recommendedTrades
             .map((recommendedTrade) => new RecommendedTrade(
-              recommendedTrade.action,
               recommendedTrade.characterId,
               recommendedTrade.dateCreated,
               recommendedTrade.recommendedTradeId,
-              recommendedTrade.state,
               recommendedTrade.status,
+              recommendedTrade.action,
+              recommendedTrade.state,
               recommendedTrade.typeId,
               recommendedTrade.typeName,
             ))
@@ -113,6 +113,10 @@ export class StationTradingComponent implements OnInit {
     return this._getSystems(regionId).subscribe({
       next: (systems) => {
         this.systems = systems.sort((s1, s2) => s1.name.localeCompare(s2.name));
+        this.stations = [];
+        this.stationSelect.setValue(undefined);
+        this.structures = [];
+        this.structureSelect.setValue(undefined);
       },
       complete: () => this.systemSelect.enable(),
     });
@@ -122,12 +126,14 @@ export class StationTradingComponent implements OnInit {
     const systemId = this.systemSelect.value;
     this._getStations({ systemId }).subscribe({
       next: (stations) => {
+        this.stationSelect.setValue(undefined);
         this.stations = stations.sort((s1, s2) => s1.name.localeCompare(s2.name));
       },
       complete: () => this.stationSelect.enable(),
     });
     this._getStructures({ systemId }).subscribe({
       next: (structures) => {
+        this.structureSelect.setValue(undefined);
         this.structures = structures.sort((s1, s2) => s1.name.localeCompare(s2.name));
       },
       complete: () => this.structureSelect.enable(),
@@ -145,20 +151,36 @@ export class StationTradingComponent implements OnInit {
   useCurrentLocation() {
     return this._getCharacters().subscribe((characters) => {
       const character = characters[0];
+
+      // Set the region and system
+      this.regionSelect.setValue(character.location.regionId);
+      this._getSystems(character.location.regionId).subscribe({
+        next: (systems) => {
+          this.systems = systems.sort((s1, s2) => s1.name.localeCompare(s2.name));
+          this.systemSelect.setValue(character.location.systemId);
+          this.systemSelect.enable();
+        }
+      });
+
+      // Set the station or structure
       if (character.location.station_id) {
+        this.structureSelect.setValue(undefined);
         this._getStation(character.location.station_id).subscribe({
           next: (station) => {
             this.stations = [station];
             this.stationSelect.setValue(character.location.station_id)
+            this.stationSelect.enable();
           }
         });
       }
       if (character.location.structure_id) {
+        this.stationSelect.setValue(undefined);
         this.authenticatorService.withIskprinterReauth((accessToken) => {
           return this.iskprinterApiService.getStructure(accessToken, character.location.structure_id);
         }).subscribe((structure) => {
           this.structures = [structure];
           this.structureSelect.setValue(character.location.structure_id);
+          this.structureSelect.enable();
         });
       }
     });
@@ -197,12 +219,12 @@ export class StationTradingComponent implements OnInit {
                   ...this.recommendedTrades.data,
                 ]
                   .map((recommendedTrade) => new RecommendedTrade(
-                    recommendedTrade.action,
                     recommendedTrade.characterId,
                     recommendedTrade.dateCreated,
                     recommendedTrade.recommendedTradeId,
-                    recommendedTrade.state,
                     recommendedTrade.status,
+                    recommendedTrade.action,
+                    recommendedTrade.state,
                     recommendedTrade.typeId,
                     recommendedTrade.typeName,
                   ))
