@@ -4,9 +4,5 @@
 coverage/
 dev-server.sh
 dist/
-Dockerfile
-jenkins-agent.yaml
-Jenkinsfile
 node_modules/
 README.md
-start.sh

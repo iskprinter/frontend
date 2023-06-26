@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer/';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
 
 import { EnvironmentService } from 'src/app/services/environment/environment.service';
@@ -10,7 +10,7 @@ import { NoValidCredentialsError } from 'src/app/errors/NoValidCredentialsError'
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class AuthenticatorService implements CanActivate {
+export class AuthenticatorService  {
   constructor(
     private http: HttpClient,
     private router: Router,
