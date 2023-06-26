@@ -1,7 +1,13 @@
 FROM node:20-alpine3.18 AS install
 WORKDIR /app
 COPY ./package.json ./package-lock.json ./
-RUN npm ci
+RUN apk add --no-cache --update \
+  build-base \
+  make \
+  python3
+# Remove UV_USE_IO_URING=0 as soon as possible
+# https://github.com/nodejs/node/issues/48444
+RUN UV_USE_IO_URING=0 npm ci
 COPY . ./
 
 FROM install AS test
